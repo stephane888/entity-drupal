@@ -9,6 +9,15 @@ export default {
       { keys: ["html_1"] },
       { keys: ["name"] },
       { keys: ["type_color_theme"] },
+      { keys: ["site_theme_color"] },
+      {
+        keys: [
+          "color_primary",
+          "color_secondary",
+          "color_linkhover",
+          "background",
+        ],
+      },
       { keys: ["pages"] },
     ],
     // Contient les informations sur le formaulaire.
@@ -17,7 +26,7 @@ export default {
     model: {},
   }),
   mutations: {
-    //passe à l'etape suivante
+    // Passe à l'etape suivante.
     nextStep(state) {
       if (state.steppers.length > state.current_step) {
         state.current_step++;
@@ -28,7 +37,7 @@ export default {
         state.current_step--;
       }
     },
-    // Permet de mettre à jour un champs..
+    // Permet de mettre à jour un champs ...
     setValue(state, payload) {
       if (payload.fieldName && payload.value) {
         if (state.model[payload.fieldName]) {

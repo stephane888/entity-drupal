@@ -1,14 +1,15 @@
 <template>
   <section class="step-donneesite mx-auto text-center">
-    <div v-for="(render, k) in buildFields()" :key="k">
-      <component
-        :is="render.template"
-        :field="render.field"
-        :model="render.model"
-        :fieldName="render.fieldName"
-        :class_css="['fieldset-wrapper']"
-      ></component>
-    </div>
+    <component
+      :is="render.template"
+      :field="render.field"
+      :model="render.model"
+      :fieldName="render.fieldName"
+      :class_css="['fieldset-wrapper', render.field.type]"
+      v-for="(render, k) in buildFields()"
+      :key="k"
+    ></component>
+
     <div>
       <nextPreviewVue></nextPreviewVue>
     </div>
@@ -50,14 +51,14 @@ export default {
         if (this.form[fieldName]) {
           if (this.model[fieldName])
             fields.push({
-              template: loadField.getField(this.form[fieldName].type),
+              template: loadField.getField(this.form[fieldName]),
               field: this.form[fieldName],
               model: this.model,
               fieldName: fieldName,
             });
           else
             fields.push({
-              template: loadField.getField(this.form[fieldName].type),
+              template: loadField.getField(this.form[fieldName]),
               field: this.form[fieldName],
             });
         }

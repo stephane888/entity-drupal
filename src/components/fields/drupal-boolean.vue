@@ -1,5 +1,5 @@
 <template>
-  <div :class="class_css">
+  <div :class="class_css" field="drupal_boolean">
     <div class="field-item-value js-form-type-radio" :format_val="format_val">
       <b-form-group :label="field.label" v-slot="{ ariaDescribedby }">
         <div class="fieldset-wrapper">
@@ -54,11 +54,20 @@ export default {
   mounted() {
     this.getImage();
   },
+  watch: {
+    /**
+     * Lorsque le composant est chargé plusieurs durant le processus, on est obligé de forcer la MAJ des images si le nom change.
+     * ( Idealement on devrait charger des instances du champs pour un espace bien donnée ).
+     */
+    fieldName() {
+      this.getImage();
+    },
+  },
   methods: {
     getImage() {
       this.field.entity_form_settings.list_options.forEach((option) => {
         if (!option.image_url) this.$set(option, "image_url", "");
-        if (option.image[0]) {
+        if (option.image[0] && option.image_url == "") {
           config.getImageUrl(option.image[0]).then((resp) => {
             option.image_url = resp.data;
           });
