@@ -1,25 +1,30 @@
 <template>
   <section class="step-donneesite mx-auto text-center">
-    <component
-      :is="render.template"
-      :field="render.field"
-      :model="render.model"
-      :fieldName="render.fieldName"
-      :class_css="['fieldset-wrapper', render.field.type]"
-      v-for="(render, k) in buildFields()"
-      :key="k"
-    ></component>
-
-    <div>
-      <nextPreviewVue></nextPreviewVue>
-    </div>
+    <ValidationObserver tag="form" v-slot="v">
+      <component
+        :is="render.template"
+        :field="render.field"
+        :model="render.model"
+        :fieldName="render.fieldName"
+        :class_css="['fieldset-wrapper', render.field.type]"
+        v-for="(render, k) in buildFields()"
+        :key="k"
+      ></component>
+      <div>
+        <nextPreviewVue :validation_form="v"></nextPreviewVue>
+      </div>
+    </ValidationObserver>
   </section>
 </template>
 
 <script>
+import Vue from "vue";
 import { mapState } from "vuex";
 import loadField from "../fields/loadField";
 import nextPreviewVue from "./nextPreview.vue";
+import { ValidationObserver } from "vee-validate";
+import CKEditor from "ckeditor4-vue";
+Vue.use(CKEditor);
 export default {
   name: "renderByStep",
   data() {
@@ -29,10 +34,12 @@ export default {
   },
   components: {
     nextPreviewVue,
+    ValidationObserver,
   },
   mounted() {
     this.buildFields();
   },
+
   computed: {
     ...mapState("renderByStep", {
       form: (state) => state.form,
@@ -54,7 +61,6 @@ export default {
               template: loadField.getField(this.form[fieldName]),
               field: this.form[fieldName],
               model: this.model,
-              fieldName: fieldName,
             });
           else
             fields.push({

@@ -3,6 +3,7 @@ import drupalString from "./drupal-string.vue";
 import drupalColor from "./drupal-color.vue";
 import drupalBoolean from "./drupal-boolean.vue";
 import drupalListString from "./drupal-list-string.vue";
+import drupalTextLong from "./html-render.vue";
 import htmlRender from "./html-render.vue";
 
 export default {
@@ -28,6 +29,9 @@ export default {
       case "render_html":
         template = htmlRender;
         break;
+      case "text_long":
+        template = drupalTextLong;
+        break;
       default:
         break;
     }
@@ -35,5 +39,16 @@ export default {
   },
   getImageUrl(fid, style = "medium") {
     return this.get("/vuejs-entity/image/" + fid + "/" + style);
+  },
+  getRules(field) {
+    const rules = {};
+    if (field.constraints) {
+      for (const i in field.constraints) {
+        if (i == "NotNull") {
+          rules["required"] = true;
+        }
+      }
+    }
+    return rules;
   },
 };

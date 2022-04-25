@@ -2,7 +2,7 @@
   <div :class="class_css">
     <b-form-group :label="field.label" :description="field.description">
       <div
-        v-for="(val, k) in model[fieldName]"
+        v-for="(val, k) in model[field.name]"
         :key="k"
         class="field-item-value"
       >
@@ -23,7 +23,6 @@ export default {
     class_css: { type: [Array] },
     field: { type: Object, required: true },
     model: { type: [Object, Array], required: true },
-    fieldName: { type: String, required: true },
   },
 };
 </script>

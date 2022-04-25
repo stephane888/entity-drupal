@@ -4,53 +4,62 @@
       class="field-item-value js-form-type-checkbox"
       :format_val="format_val"
     >
-      <b-form-group :label="field.label" v-slot="{ ariaDescribedby }">
-        <div class="fieldset-wrapper">
-          <div class="checkbox">
-            <b-form-checkbox-group
-              v-model="selected"
-              :aria-describedby="ariaDescribedby"
-            >
-              <b-form-checkbox
-                :value="option.value"
-                v-for="(option, o) in field.entity_form_settings.list_options"
-                :key="o"
-                class="form-check"
-              >
-                <div>
-                  <b-img
-                    thumbnail
-                    fluid
-                    :src="option.image_url"
-                    alt="Image 1"
-                  ></b-img>
-                </div>
-                {{ option.label }}
-                <div
-                  class="mt-5 text-hover"
-                  v-html="option.description.value"
-                  v-if="
-                    option.description.value && option.description.value !== ''
-                  "
-                ></div>
-              </b-form-checkbox>
-            </b-form-checkbox-group>
+      <ValidationProvider :name="field.name" :rules="getRules()" v-slot="v">
+        <b-form-group :label="field.label">
+          <div class="fieldset-wrapper">
+            <div class="checkbox">
+              <b-form-checkbox-group v-model="selected">
+                <b-form-checkbox
+                  :value="option.value"
+                  v-for="(option, o) in field.entity_form_settings.list_options"
+                  :key="o"
+                  class="form-check"
+                >
+                  <div>
+                    <b-img
+                      thumbnail
+                      fluid
+                      :src="option.image_url"
+                      alt="Image 1"
+                    ></b-img>
+                  </div>
+                  {{ option.label }}
+                  <div
+                    class="mt-5 text-hover"
+                    v-html="option.description.value"
+                    v-if="
+                      option.description.value &&
+                      option.description.value !== ''
+                    "
+                  ></div>
+                </b-form-checkbox>
+              </b-form-checkbox-group>
+            </div>
+            <div class="text-danger my-2" v-if="v.errors">
+              <small v-for="(error, ii) in v.errors" :key="ii" class="d-block">
+                {{ error }}
+              </small>
+            </div>
           </div>
-        </div>
-      </b-form-group>
+        </b-form-group>
+      </ValidationProvider>
     </div>
   </div>
 </template>
 
 <script>
 import config from "./loadField";
+import { ValidationProvider } from "vee-validate";
+import "./vee-validation-rules";
 export default {
   name: "drupal-list-string",
   props: {
     class_css: { type: [Array] },
     field: { type: Object, required: true },
     model: { type: [Object], required: true },
-    fieldName: { type: String, required: true },
+  },
+  components: {
+    ValidationProvider,
   },
   data() {
     return {
@@ -88,6 +97,9 @@ export default {
         fieldName: this.fieldName,
       });
     },
+    getRules() {
+      return config.getRules(this.field);
+    },
   },
   computed: {
     format_val() {
@@ -99,6 +111,9 @@ export default {
       }
       this.setValue(vals);
       return vals;
+    },
+    fieldName() {
+      return this.field.name;
     },
   },
 };

@@ -19,6 +19,9 @@ export default {
         ],
       },
       { keys: ["pages"] },
+      {
+        keys: ["description"],
+      },
     ],
     // Contient les informations sur le formaulaire.
     form: {},
