@@ -16,7 +16,6 @@ export default {
   },
   name: "formRender",
   mounted() {
-    this.$store.commit("renderByStep/loadForm");
     this.getRender();
   },
   methods: {
