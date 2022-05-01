@@ -5,6 +5,7 @@ import drupalBoolean from "./drupal-boolean.vue";
 import drupalListString from "./drupal-list-string.vue";
 import drupalTextLong from "./html-render.vue";
 import htmlRender from "./html-render.vue";
+import drupalFile from "./drupal-file.vue";
 
 export default {
   ...rootConfig,
@@ -31,6 +32,9 @@ export default {
         break;
       case "text_long":
         template = drupalTextLong;
+        break;
+      case "image":
+        template = drupalFile;
         break;
       default:
         break;

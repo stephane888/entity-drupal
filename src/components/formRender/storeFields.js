@@ -1,4 +1,9 @@
 import config from "./config";
+import loadField from "../fieldsDrupal/loadField";
+import layoutREnder from "../fieldsLayout/layoutRenderHeader.vue";
+import layoutRenderFooter from "../fieldsLayout/layoutRenderFooter.vue";
+import sectionRegister from "../sections/page-register.vue";
+import sectionSave from "../sections/page-save.vue";
 export default {
   namespaced: true,
   state: () => ({
@@ -11,7 +16,20 @@ export default {
       { keys: ["html_1"] },
       { keys: ["name"] },
       { keys: ["type_color_theme"] },
-      { keys: ["site_theme_color"] },
+      {
+        keys: ["site_theme_color"],
+        states: [
+          {
+            step: {
+              action: "visible",
+              name: "type_color_theme",
+              operator: "==",
+              value: "0",
+              state_name: "",
+            },
+          },
+        ],
+      },
       {
         keys: [
           "color_primary",
@@ -19,7 +37,19 @@ export default {
           "color_linkhover",
           "background",
         ],
+        states: [
+          {
+            step: {
+              action: "visible",
+              name: "type_color_theme",
+              operator: "==",
+              value: "1",
+              state_name: "",
+            },
+          },
+        ],
       },
+      { keys: ["image_logo"] },
       { keys: ["pages"] },
       // {
       //   keys: ["description"],
@@ -42,6 +72,8 @@ export default {
         templates: ["page_save"],
       },
     ],
+    // Contient les etapes valides.
+    valid_steppers: [],
     // Contient les informations sur le formaulaire.
     form: {},
     // Contient l'etat du formulaire.
@@ -56,8 +88,10 @@ export default {
         state.current_step++;
       }
     },
-    previewStep(state) {
-      if (state.current_step > 0) {
+    previewStep(state, step = null) {
+      if (step !== null) {
+        state.current_step = step;
+      } else if (state.current_step > 0) {
         state.current_step--;
       }
     },
@@ -77,6 +111,13 @@ export default {
     },
     DISABLE_RUNNING(state) {
       state.running = false;
+    },
+    ADD_VALID_STEP(state, payload) {
+      if (!state.valid_steppers.includes(payload))
+        state.valid_steppers.push(payload);
+    },
+    REMOVE_LAST_VALID_STEP(state) {
+      state.valid_steppers.pop();
     },
     // ...
   },
@@ -99,6 +140,84 @@ export default {
     },
   },
   getters: {
-    //
+    // Contient les champs d'une etape.
+    stepFields: ({ state, commit }) => {
+      const fields = [];
+      console.log("getters.fields");
+      const step = state.steppers[state.current_step];
+      // validation de l'etape:
+      var valid = true;
+      if (step.states && step.states.length) {
+        const getState = (i = 0) => {
+          if (step.states[i]) return step.states[i];
+        };
+        var stepState = getState(0);
+        if (stepState.custom == "check_user_login") {
+          if (state.user && state.user.uid && state.user.uid[0]) {
+            valid = false;
+          }
+        } else if (
+          stepState.step &&
+          stepState.step.name &&
+          state.model[stepState.step.name] &&
+          state.model[stepState.step.name].length &&
+          state.model[stepState.step.name][0].value == stepState.step.value
+        ) {
+          valid = false;
+        }
+      }
+      //
+      if (!valid) {
+        commit("renderByStep/nextStep");
+        //this.$router.push({ path: `/form-render/${this.current_step}` });
+        return [];
+      }
+      // Charge les champs drupal.
+      if (step.keys && step.keys.length) {
+        step.keys.forEach((fieldName) => {
+          if (state.form[fieldName]) {
+            // Ces deux conditions ne me semble pas claire.
+            if (state.model[fieldName])
+              fields.push({
+                template: loadField.getField(this.form[fieldName]),
+                field: this.form[fieldName],
+                model: this.model,
+              });
+            else
+              fields.push({
+                template: loadField.getField(this.form[fieldName]),
+                field: this.form[fieldName],
+              });
+          }
+        });
+      }
+      // Charge les templates.
+      if (step.templates && step.templates.length) {
+        step.templates.forEach((template) => {
+          if (template == "layout_entete") {
+            fields.push({
+              template: layoutREnder,
+              field: {},
+            });
+          } else if (template == "layout_footer") {
+            fields.push({
+              template: layoutRenderFooter,
+              field: {},
+            });
+          } else if (template == "page_register") {
+            fields.push({
+              template: sectionRegister,
+              field: {},
+            });
+          } else if (template == "page_save") {
+            fields.push({
+              template: sectionSave,
+              field: {},
+            });
+          }
+        });
+      }
+      return fields;
+    },
   },
 };

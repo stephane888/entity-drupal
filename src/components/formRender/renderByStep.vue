@@ -1,8 +1,5 @@
 <template>
-  <section
-    class="step-donneesite mx-auto text-center"
-    :get_running="get_running"
-  >
+  <section class="step-donneesite mx-auto text-center">
     <ValidationObserver tag="form" v-slot="v">
       <component
         :is="render.template"
@@ -44,7 +41,7 @@ export default {
     ValidationObserver,
   },
   mounted() {
-    //
+    //this.buildFields();
   },
   computed: {
     ...mapState("renderByStep", {
@@ -54,19 +51,20 @@ export default {
       steppers: (state) => state.steppers,
       running: (state) => state.running,
     }),
-    get_running() {
-      const keys = Object.keys(this.form);
-      if (keys.length) {
-        console.log("get_running");
-        this.buildFields();
-      }
-      return this.running;
-    },
+    // get_running() {
+    //   const keys = Object.keys(this.form);
+    //   if (keys.length) {
+    //     console.log("get_running");
+    //     this.buildFields();
+    //   }
+    //   return this.running;
+    // },
   },
 
   methods: {
     // Contruit les champs de l'etape.
     buildFields() {
+      console.log("buildFields");
       this.fields = [];
       const step = this.steppers[this.current_step];
       // validation de l'etape:
@@ -85,6 +83,14 @@ export default {
           ) {
             valid = false;
           }
+        } else if (
+          state.step &&
+          state.step.name &&
+          this.model[state.step.name] &&
+          this.model[state.step.name].length &&
+          this.model[state.step.name][0].value == state.step.value
+        ) {
+          valid = false;
         }
       }
       //alert(valid);
@@ -96,7 +102,6 @@ export default {
 
       //
       if (step.keys && step.keys.length) {
-        console.log("buildFields");
         step.keys.forEach((fieldName) => {
           if (this.form[fieldName]) {
             if (this.model[fieldName])
@@ -115,7 +120,6 @@ export default {
       }
       //
       if (step.templates && step.templates.length) {
-        console.log("buildFields template");
         step.templates.forEach((template) => {
           if (template == "layout_entete") {
             this.fields.push({
@@ -140,6 +144,7 @@ export default {
           }
         });
       }
+      this.$store.commit("renderByStep/ADD_VALID_STEP", this.current_step);
       //
       return this.fields;
     },

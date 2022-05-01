@@ -64,6 +64,7 @@ export default {
       steppers: (state) => state.renderByStep.steppers,
       current_step: (state) => state.renderByStep.current_step,
       finish_status: (state) => state.finish_status,
+      valid_steppers: (state) => state.renderByStep.valid_steppers,
     }),
     count_step() {
       return this.current_step + 1;
@@ -93,8 +94,12 @@ export default {
       }
     },
     previewStep() {
-      this.$store.commit("renderByStep/previewStep");
-      this.$router.push({ path: `/form-render/${this.current_step}` });
+      // const id = this.valid_steppers[this.valid_steppers.length - 2];
+      // if (id) {
+      //   this.$store.commit("renderByStep/previewStep", id);
+      //   this.$router.push({ path: `/form-render/${id}` });
+      //   this.$store.commit("renderByStep/REMOVE_LAST_VALID_STEP");
+      // }
     },
     validationStep() {
       if (this.validation_form.valid) {
@@ -105,6 +110,9 @@ export default {
         this.disabled = true;
       }
     },
+    /**
+     * S'execute uniquement lorsqu'on actualise la page et lorqu'on change de route.
+     */
     ajustStep() {
       var idstep = parseInt(this.$route.params.idstep);
       if (
