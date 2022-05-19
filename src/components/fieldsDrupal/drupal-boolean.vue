@@ -14,13 +14,18 @@
                 class="form-check"
                 :state="getValidationState(v)"
               >
-                <b-img
-                  thumbnail
-                  fluid
-                  :src="option.image_url"
-                  alt="Image 1"
-                ></b-img>
-
+                <transition name="fade" mode="out-in">
+                  <div>
+                    <b-img
+                      thumbnail
+                      fluid
+                      :src="option.image_url"
+                      alt="Image 1"
+                      v-if="option.image_url"
+                    ></b-img>
+                    <svgLoader v-if="!option.image_url"></svgLoader>
+                  </div>
+                </transition>
                 <div class="mt-5">{{ option.label }}</div>
                 <div
                   v-if="
@@ -47,6 +52,7 @@
 import config from "./loadField";
 import { ValidationProvider } from "vee-validate";
 import "./vee-validation-rules";
+import svgLoader from "./svg-preloader.vue";
 export default {
   name: "drupal-boolean",
   props: {
@@ -56,6 +62,7 @@ export default {
   },
   components: {
     ValidationProvider,
+    svgLoader,
   },
   data() {
     return {
@@ -116,3 +123,13 @@ export default {
   },
 };
 </script>
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0.2;
+}
+</style>

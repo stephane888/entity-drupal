@@ -1,7 +1,12 @@
 <template>
   <div :class="class_css">
     <b-form-group :label="field.text_html.label">
-      <ckeditor v-model="editorData" :config="editorConfig"></ckeditor>
+      <ckeditor
+        v-model="editorData"
+        :config="editorConfig"
+        @input="input"
+        @namespaceloaded="onNamespaceLoaded"
+      ></ckeditor>
     </b-form-group>
   </div>
 </template>
@@ -21,7 +26,10 @@ export default {
     return {
       editorData: this.field.text_html.value,
       editorConfig: {
-        // The configuration of the editor.
+        extraPlugins: "",
+        protectedSource: [/<i class[\s\S]*?>/g, /<\/i>/g],
+        contentsCss:
+          " @import 'https://arche.lesroisdelareno.fr/themes/custom/arche_lesroisdelareno_fr/css/global-style.css?rbghzb';",
       },
     };
   },
@@ -34,6 +42,12 @@ export default {
         value: val,
       };
       this.$store.commit(this.sub_store + "/setValue", payload);
+      //console.log("input ", payload);
+    },
+    onNamespaceLoaded(CKEDITOR) {
+      CKEDITOR.dtd.$removeEmpty["i"] = false;
+      CKEDITOR.dtd.$removeEmpty["span"] = false;
+      console.log(" CKEDITOR : ", CKEDITOR);
     },
   },
 };

@@ -29,6 +29,7 @@ export default {
         )
         .then((resp) => {
           if (resp.data) {
+            resp.data.css = "mb-0";
             state.configuration = resp.data;
           }
         });

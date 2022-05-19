@@ -1,12 +1,13 @@
 <template>
   <section class="step-donneesite mx-auto text-center">
+    <progressBar></progressBar>
     <ValidationObserver tag="form" v-slot="v">
       <component
         :is="render.template"
         :field="render.field"
         :model="render.model"
         :class_css="['fieldset-wrapper', render.field.type]"
-        v-for="(render, k) in fields"
+        v-for="(render, k) in stepFields"
         :key="k"
       ></component>
       <div>
@@ -18,7 +19,7 @@
 
 <script>
 import Vue from "vue";
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import loadField from "../fieldsDrupal/loadField";
 import nextPreviewVue from "./nextPreview.vue";
 import { ValidationObserver } from "vee-validate";
@@ -27,6 +28,7 @@ import layoutREnder from "../fieldsLayout/layoutRenderHeader.vue";
 import layoutRenderFooter from "../fieldsLayout/layoutRenderFooter.vue";
 import sectionRegister from "../sections/page-register.vue";
 import sectionSave from "../sections/page-save.vue";
+import progressBar from "./progress-bar.vue";
 Vue.use(CKEditor);
 export default {
   name: "renderByStep",
@@ -39,6 +41,7 @@ export default {
   components: {
     nextPreviewVue,
     ValidationObserver,
+    progressBar,
   },
   mounted() {
     //this.buildFields();
@@ -51,6 +54,7 @@ export default {
       steppers: (state) => state.steppers,
       running: (state) => state.running,
     }),
+    ...mapGetters("renderByStep", ["stepFields"]),
     // get_running() {
     //   const keys = Object.keys(this.form);
     //   if (keys.length) {
@@ -151,3 +155,25 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+.step-donneesite {
+  max-width: 1200px;
+  padding-left: 0;
+  padding-right: 0;
+  form > .fieldset-wrapper {
+    max-height: 700px;
+    overflow: auto;
+    overflow-x: hidden;
+    .form-group,
+    .color_theme_field_type {
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+  .render-model {
+    top: 0;
+  }
+}
+</style>

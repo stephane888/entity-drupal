@@ -1,6 +1,6 @@
 <template>
-  <div class="text-left">
-    <div class="accordion" role="tablist">
+  <div class="text-left row">
+    <div class="accordion col-md-6" role="tablist">
       <b-card no-body class="mb-1" v-for="(card, c) in buildFields()" :key="c">
         <b-card-header header-tag="header" class="p-1" role="tab">
           <b-button
@@ -29,6 +29,15 @@
           </b-card-body>
         </b-collapse>
       </b-card>
+    </div>
+    <div class="col-md-6">
+      <div class="position-sticky render-model">
+        <label> Apercu de l'entete </label>
+        <img
+          class="img-fluid"
+          src="https://lesroisdelareno.fr/sites/default/files/2022-05/opera-instantane_2022-05-05_111359_lesroisdelareno.kksa_.png"
+        />
+      </div>
     </div>
   </div>
 </template>

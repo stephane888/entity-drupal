@@ -94,12 +94,29 @@ export default {
       }
     },
     previewStep() {
-      // const id = this.valid_steppers[this.valid_steppers.length - 2];
-      // if (id) {
-      //   this.$store.commit("renderByStep/previewStep", id);
-      //   this.$router.push({ path: `/form-render/${id}` });
-      //   this.$store.commit("renderByStep/REMOVE_LAST_VALID_STEP");
-      // }
+      var idstep = parseInt(this.$route.params.idstep);
+      const length = this.valid_steppers.length;
+      if (this.valid_steppers.length > 1) {
+        const id = this.valid_steppers[length - 2];
+        if (idstep == id) {
+          this.$store.dispatch("renderByStep/removeLastValidStep").then(() => {
+            this.previewStep();
+            // console.log("this.valid_steppers : ", this.valid_steppers);
+            // // eslint-disable-next-line
+            // debugger;
+            // const id2 = this.valid_steppers.splice(-1, 3);
+            // console.log(" beofre second back : ", id2);
+            // if (id2 && id2[0]) {
+            //   console.log(" second back : ", id2);
+            //   this.$router.push({ path: `/form-render/${id2}` });
+            // }
+          });
+        } else {
+          this.$store.dispatch("renderByStep/removeLastValidStep").then(() => {
+            this.$router.push({ path: `/form-render/${id}` });
+          });
+        }
+      }
     },
     validationStep() {
       if (this.validation_form.valid) {

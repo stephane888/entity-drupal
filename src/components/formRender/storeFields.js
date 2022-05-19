@@ -4,6 +4,8 @@ import layoutREnder from "../fieldsLayout/layoutRenderHeader.vue";
 import layoutRenderFooter from "../fieldsLayout/layoutRenderFooter.vue";
 import sectionRegister from "../sections/page-register.vue";
 import sectionSave from "../sections/page-save.vue";
+import router from "../../router";
+import store from "../../store/index";
 export default {
   namespaced: true,
   state: () => ({
@@ -114,10 +116,16 @@ export default {
     },
     ADD_VALID_STEP(state, payload) {
       if (!state.valid_steppers.includes(payload))
-        state.valid_steppers.push(payload);
+        state.valid_steppers.push({ value: payload });
     },
     REMOVE_LAST_VALID_STEP(state) {
-      state.valid_steppers.pop();
+      const ar = state.valid_steppers;
+      const n_ar = [];
+      ar.forEach((item) => {
+        if (ar.length > n_ar.length + 1) n_ar.push(item);
+      });
+      console.log("n_ar : ", n_ar);
+      state.valid_steppers = n_ar;
     },
     // ...
   },
@@ -138,13 +146,23 @@ export default {
     setValue({ commit }, payload) {
       commit("SET_VALUE", payload);
     },
+    //
+    removeLastValidStep({ commit }) {
+      commit("REMOVE_LAST_VALID_STEP");
+      return new Promise((resolv) => {
+        setTimeout(() => {
+          resolv(true);
+        }, 200);
+      });
+    },
   },
   getters: {
     // Contient les champs d'une etape.
-    stepFields: ({ state, commit }) => {
+    stepFields: (state) => {
       const fields = [];
-      console.log("getters.fields");
+      console.log(" Getters.fields :: ", state, " \n store : ", store.state);
       const step = state.steppers[state.current_step];
+      var save_step = true;
       // validation de l'etape:
       var valid = true;
       if (step.states && step.states.length) {
@@ -153,7 +171,12 @@ export default {
         };
         var stepState = getState(0);
         if (stepState.custom == "check_user_login") {
-          if (state.user && state.user.uid && state.user.uid[0]) {
+          save_step = false;
+          if (
+            store.state.user &&
+            store.state.user.uid &&
+            store.state.user.uid[0]
+          ) {
             valid = false;
           }
         } else if (
@@ -168,8 +191,7 @@ export default {
       }
       //
       if (!valid) {
-        commit("renderByStep/nextStep");
-        //this.$router.push({ path: `/form-render/${this.current_step}` });
+        router.push({ path: `/form-render/${state.current_step + 1}` });
         return [];
       }
       // Charge les champs drupal.
@@ -179,14 +201,14 @@ export default {
             // Ces deux conditions ne me semble pas claire.
             if (state.model[fieldName])
               fields.push({
-                template: loadField.getField(this.form[fieldName]),
-                field: this.form[fieldName],
-                model: this.model,
+                template: loadField.getField(state.form[fieldName]),
+                field: state.form[fieldName],
+                model: state.model,
               });
             else
               fields.push({
-                template: loadField.getField(this.form[fieldName]),
-                field: this.form[fieldName],
+                template: loadField.getField(state.form[fieldName]),
+                field: state.form[fieldName],
               });
           }
         });
@@ -217,6 +239,9 @@ export default {
           }
         });
       }
+      // ajout de l'epape
+      if (state.valid_steppers.indexOf(state.current_step) === -1 && save_step)
+        state.valid_steppers.push(state.current_step);
       return fields;
     },
   },
