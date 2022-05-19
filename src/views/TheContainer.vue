@@ -8,13 +8,14 @@
 
 <script>
 import "bootstrap-vue/dist/bootstrap-vue-icons.min.css";
-import { users } from "drupal-vuejs";
+import users from "../users.js";
 export default {
   name: "the-container",
   mounted() {
     this.$store.dispatch("renderByStep/loadForm");
     this.$store.commit("storeLayoutFooter/loadLayout");
     this.$store.commit("storeLayout/loadLayout");
+    this.$store.dispatch("loadStrings");
     users.getCurrentUser().then((user) => {
       this.$store.commit("SET_USER", user);
     });

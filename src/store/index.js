@@ -4,6 +4,7 @@ import saveEntity from "./saveEntity";
 import renderByStep from "../components/formRender/storeFields";
 import storeLayout from "../components/fieldsLayout/storeLayout";
 import storeLayoutFooter from "../components/fieldsLayout/storeLayoutFooter";
+import config from "../rootConfig";
 
 Vue.use(Vuex);
 
@@ -51,6 +52,8 @@ export default new Vuex.Store({
     ],
     // utilisateur connecter.
     user: {},
+    // Contient les textes traduites.
+    strings: {},
   },
   getters: {},
   mutations: {
@@ -71,6 +74,9 @@ export default new Vuex.Store({
     SET_USER(state, user) {
       state.user = user;
     },
+    SET_STRINGS(state, strings) {
+      state.strings = strings;
+    },
   },
   actions: {
     //
@@ -85,6 +91,14 @@ export default new Vuex.Store({
     reset_creation({ commit }) {
       commit("DISABLE_CREATION");
       saveEntity.currentBuildStep = 0;
+    },
+    // Load strings texte
+    loadStrings({ commit }) {
+      return config.get("/vuejs-entity/default-string").then((resp) => {
+        if (resp.data) {
+          commit("SET_STRINGS", resp.data);
+        }
+      });
     },
   },
   modules: {

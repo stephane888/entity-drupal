@@ -2,8 +2,7 @@
   <div>
     <label> Creer votre site maintenant !!! </label>
     <p class="step-donneesite--label">
-      Si votre contenu vous convient, cliquez sur le bouton
-      <b> 'Je cree mon site' </b>. Vous pourriez le modifier à tout moment.
+      {{ strings.page_save_1 }}
     </p>
     <div class="text-left mx-auto content-save-text" v-if="creation_running">
       <ul class="puce-step-vertical step-build">
@@ -33,7 +32,7 @@
           ></b-icon>
         </li>
       </ul>
-      <div v-if="finish_status" class="my-5 h3 text-primary">
+      <div v-if="finish_status" class="my-5 h3 text-primary d-none">
         Votre site serra disponible d'ici 15 minutes
         <small>
           <i class="d-block"> (le temps de progagation des données DNS) </i>
@@ -41,11 +40,11 @@
       </div>
       <div class="action d-flex flex-column" v-if="finish_status">
         <b-button @click="open_new_site">
-          Visiter votre nouveau site
+          {{ strings.page_save_vue }}
           <b-icon icon="award" font-scale="1.3" class="float-right"></b-icon>
         </b-button>
         <b-button @click="open_new_site_admin">
-          Administrer son contenu
+          {{ strings.page_save_admin }}
           <b-icon
             icon="folder-symlink"
             font-scale="1.3"
@@ -54,7 +53,7 @@
         </b-button>
       </div>
       <div v-if="finish_status" class="my-5 h3">
-        Votre site web :
+        {{ strings.page_save_url }}
         <a @click="open_new_site">
           <b> {{ new_hostname }} </b>
         </a>
@@ -76,6 +75,7 @@ export default {
       creation_running: (state) => state.creation_running,
       finish_status: (state) => state.finish_status,
       new_hostname: (state) => state.new_hostname,
+      strings: (state) => state.strings,
     }),
   },
   methods: {

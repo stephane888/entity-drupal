@@ -6,6 +6,7 @@ import sectionRegister from "../sections/page-register.vue";
 import sectionSave from "../sections/page-save.vue";
 import router from "../../router";
 import store from "../../store/index";
+console.log("config store : ", config);
 export default {
   namespaced: true,
   state: () => ({
@@ -133,6 +134,7 @@ export default {
     // On charge les données du formulaire.
     loadForm({ commit }) {
       commit("ACTIVE_RUNNING");
+      console.log(" loadForm config ", config);
       return config
         .bPost("/vuejs-entity/form/donnee_internet_entity/default/bundle")
         .then((resp) => {

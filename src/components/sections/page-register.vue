@@ -6,7 +6,8 @@
 </template>
 
 <script>
-import { loginRegister, users } from "drupal-vuejs";
+import { loginRegister } from "drupal-vuejs";
+import users from "../../users.js";
 export default {
   name: "page-register",
   components: {

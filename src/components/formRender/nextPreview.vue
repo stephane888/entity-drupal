@@ -8,7 +8,7 @@
       v-if="current_step && !creation_running"
       @click="previewStep"
     >
-      <b-icon icon="arrow-left"></b-icon> Precedent
+      <b-icon icon="arrow-left"></b-icon> {{ strings.previous }}
     </b-button>
     <b-button
       variant="primary"
@@ -16,7 +16,7 @@
       v-if="count_step < steppers.length"
       :disabled="disabled || disable_submit"
     >
-      Suivant <b-icon icon="arrow-right"></b-icon>
+      {{ strings.next }} <b-icon icon="arrow-right"></b-icon>
     </b-button>
 
     <b-button
@@ -25,7 +25,7 @@
       @click="create_site"
       :disabled="creation_running"
     >
-      je cree mon site
+      {{ strings.create_web_site }}
       <b-icon
         icon="check2"
         font-scale="2"
@@ -65,6 +65,7 @@ export default {
       current_step: (state) => state.renderByStep.current_step,
       finish_status: (state) => state.finish_status,
       valid_steppers: (state) => state.renderByStep.valid_steppers,
+      strings: (state) => state.strings,
     }),
     count_step() {
       return this.current_step + 1;
