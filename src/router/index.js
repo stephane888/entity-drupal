@@ -26,16 +26,6 @@ const routes = [
       },
     ],
   },
-  // {
-  //   path: "/",
-  //   name: "about",
-  //   component: () => import("../views/AboutView.vue"),
-  // },
-  // {
-  //   path: "/form-render",
-  //   name: "form-render",
-  //   component: () => import("../views/formRender.vue"),
-  // },
 ];
 
 const router = new VueRouter({

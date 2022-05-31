@@ -1,7 +1,10 @@
 import config from "./config";
 import loadField from "../fieldsDrupal/loadField";
-import layoutREnder from "../fieldsLayout/layoutRenderHeader.vue";
-import layoutRenderFooter from "../fieldsLayout/layoutRenderFooter.vue";
+//import layoutREnder from "../fieldsLayout/layoutRenderHeader.vue";
+import storeFormRenderHeader from "../FormRenderHeader/formRenderHeader.vue";
+//import layoutRenderFooter from "../fieldsLayout/layoutRenderFooter.vue";
+import storeFormRenderFooter from "../FormRenderFooter/FormRenderFooter.vue";
+//
 import sectionRegister from "../sections/page-register.vue";
 import sectionSave from "../sections/page-save.vue";
 import router from "../../router";
@@ -220,12 +223,12 @@ export default {
         step.templates.forEach((template) => {
           if (template == "layout_entete") {
             fields.push({
-              template: layoutREnder,
+              template: storeFormRenderHeader,
               field: {},
             });
           } else if (template == "layout_footer") {
             fields.push({
-              template: layoutRenderFooter,
+              template: storeFormRenderFooter,
               field: {},
             });
           } else if (template == "page_register") {

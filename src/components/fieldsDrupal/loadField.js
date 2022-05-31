@@ -1,5 +1,6 @@
 import rootConfig from "../../rootConfig";
 import drupalString from "./drupal-string.vue";
+import drupalLink from "./drupal-link.vue";
 import drupalColor from "./drupal-color.vue";
 import drupalBoolean from "./drupal-boolean.vue";
 import drupalListString from "./drupal-list-string.vue";
@@ -17,6 +18,9 @@ export default {
     switch (key) {
       case "string":
         template = drupalString;
+        break;
+      case "link":
+        template = drupalLink;
         break;
       case "color_theme_field_type":
         template = drupalColor;

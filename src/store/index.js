@@ -2,8 +2,10 @@ import Vue from "vue";
 import Vuex from "vuex";
 import saveEntity from "./saveEntity";
 import renderByStep from "../components/formRender/storeFields";
-import storeLayout from "../components/fieldsLayout/storeLayout";
-import storeLayoutFooter from "../components/fieldsLayout/storeLayoutFooter";
+//import storeLayout from "../components/fieldsLayout/storeLayout";
+//import storeLayoutFooter from "../components/fieldsLayout/storeLayoutFooter";
+import storeFormRenderHeader from "../components/FormRenderHeader/storeFormRenderHeader";
+import storeFormRenderFooter from "../components/FormRenderFooter/storeFormRenderFooter";
 import config from "../rootConfig";
 
 Vue.use(Vuex);
@@ -103,7 +105,9 @@ export default new Vuex.Store({
   },
   modules: {
     renderByStep: renderByStep,
-    storeLayout: storeLayout,
-    storeLayoutFooter: storeLayoutFooter,
+    //storeLayout: storeLayout,
+    //storeLayoutFooter: storeLayoutFooter,
+    storeFormRenderHeader: storeFormRenderHeader,
+    storeFormRenderFooter: storeFormRenderFooter,
   },
 });

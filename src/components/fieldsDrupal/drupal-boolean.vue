@@ -4,7 +4,13 @@
       <ValidationProvider :name="field.name" :rules="getRules()" v-slot="v">
         <b-form-group :label="field.label" :name="field.name">
           <div class="fieldset-wrapper">
-            <div class="radio">
+            <div
+              class="radio"
+              v-if="
+                field.entity_form_settings &&
+                field.entity_form_settings.list_options
+              "
+            >
               <b-form-radio
                 v-model="selected"
                 :name="field.name"
@@ -86,14 +92,18 @@ export default {
   },
   methods: {
     getImage() {
-      this.field.entity_form_settings.list_options.forEach((option) => {
-        if (!option.image_url) this.$set(option, "image_url", "");
-        if (option.image[0] && option.image_url == "") {
-          config.getImageUrl(option.image[0]).then((resp) => {
-            option.image_url = resp.data;
-          });
-        }
-      });
+      if (
+        this.field.entity_form_settings &&
+        this.field.entity_form_settings.list_options
+      )
+        this.field.entity_form_settings.list_options.forEach((option) => {
+          if (!option.image_url) this.$set(option, "image_url", "");
+          if (option.image[0] && option.image_url == "") {
+            config.getImageUrl(option.image[0]).then((resp) => {
+              option.image_url = resp.data;
+            });
+          }
+        });
     },
     setValue(vals) {
       this.$store.dispatch("renderByStep/setValue", {
