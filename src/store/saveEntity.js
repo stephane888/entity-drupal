@@ -96,15 +96,18 @@ export default {
           break;
         case "layout_header":
           step.status = "run";
-          if (this.domainRegister.id)
-            this.addEnteteLayout(state).then(() => {
-              setTimeout(() => {
-                step.status = "ok";
-                this.currentBuildStep++;
-                this.runStep(steps, state);
-              }, 500);
+          if (this.domainRegister.id) {
+            this.createBlockContentHeader(state).then((resp) => {
+              //
+              this.addEntityToBlock(resp.data, "top_header").then(() => {
+                setTimeout(() => {
+                  step.status = "ok";
+                  this.currentBuildStep++;
+                  this.runStep(steps, state);
+                }, 500);
+              });
             });
-          else {
+          } else {
             step.status = "error";
             this.currentBuildStep++;
             this.runStep(steps, state);
@@ -112,15 +115,17 @@ export default {
           break;
         case "layout_footer":
           step.status = "run";
-          if (this.domainRegister.id)
-            this.addfooterLayout(state).then(() => {
-              setTimeout(() => {
-                step.status = "ok";
-                this.currentBuildStep++;
-                this.runStep(steps, state);
-              }, 500);
+          if (this.domainRegister.id) {
+            this.createBlockContentFooter(state).then((resp) => {
+              this.addEntityToBlock(resp.data, "footer").then(() => {
+                setTimeout(() => {
+                  step.status = "ok";
+                  this.currentBuildStep++;
+                  this.runStep(steps, state);
+                }, 500);
+              });
             });
-          else {
+          } else {
             step.status = "error";
             this.currentBuildStep++;
             this.runStep(steps, state);
@@ -168,35 +173,23 @@ export default {
     }
   },
   // On va cree la page d'accueil en function de l'identifiant present dans l'url.
-  // Plus tard, on transmettra directement le type de "Site type datas"
   CreateContent() {
-    //Get home page
     const idHome = window.location.pathname.split("/").pop();
-    var type_page = "model_d_affichage_theme_partenai";
-    switch (idHome) {
-      case "9":
-        type_page = "model_d_affichage_rc_webr_";
-        break;
-      case "1":
-        type_page = "model_d_affichage_architecte_";
-        break;
-      case "10":
-        type_page = "model_d_affichage_theme_commerce";
-        break;
-    }
-
     const title =
       this.donneeInternetEntity.name[0] &&
       this.donneeInternetEntity.name[0].value
         ? "Bienvenue chez " + this.donneeInternetEntity.name[0].value
         : "Theme generer";
     const values = {
-      type: type_page,
       title: [{ value: title }],
       field_domain_access: [{ target_id: this.domainRegister.id }],
       field_domain_source: [{ target_id: this.domainRegister.id }],
+      is_default_theme: [{ value: false }],
     };
-    return this.bPost("/vuejs-entity/entity/save/node", values);
+    return this.bPost(
+      "/vuejs-entity/entity/generate-page-web/" + idHome,
+      values
+    );
   },
   // On cree les autres pages :
   CreateOrtherPages() {
@@ -205,29 +198,19 @@ export default {
         this.donneeInternetEntity.pages &&
         this.donneeInternetEntity.pages.length
       ) {
-        const options = this.getLabelPages();
-        const pages = [];
-        // Creation de menus.
-        this.CreateMenus();
-        this.donneeInternetEntity.pages.forEach((item) => {
-          // Pour l'instant les pages sont tous les nodes.
-          // On doit pouvoir suivre la creation de chaque page. et la relencer si elle ne marche pas.
-          const values = {
-            type: item.value,
-            title: [
-              { value: options[item.value] ? options[item.value] : item.value },
-            ],
-            field_domain_access: [{ target_id: this.domainRegister.id }],
-            field_domain_source: [{ target_id: this.domainRegister.id }],
-          };
-          pages.push(values);
-        });
-        //;
         const loop = (i = 0, essaie = 1) => {
           return new Promise((resolv) => {
-            const page = pages[i];
-            if (page && page.type) {
-              this.bPost("/vuejs-entity/entity/save/node", page)
+            const id = this.donneeInternetEntity.pages[i]
+              ? this.donneeInternetEntity.pages[i].value
+              : null;
+            const values = {
+              field_domain_access: [{ target_id: this.domainRegister.id }],
+              field_domain_source: [{ target_id: this.domainRegister.id }],
+              is_default_theme: [{ value: false }],
+              is_home_page: [{ value: false }],
+            };
+            if (id) {
+              this.bPost("/vuejs-entity/entity/generate-page-web/" + id, values)
                 .then(() => {
                   var id = i + 1;
                   resolv(loop(id));
@@ -253,7 +236,11 @@ export default {
       }
     });
   },
-  // Creation de menu.
+  /**
+   * La creation de menu se ferra apres la creation des pages.
+   * Car les liens de pages ainsi generer devront etre utiliser comme lien.
+   * @returns
+   */
   CreateMenus() {
     return new Promise((resolv) => {
       const getMenus = () => {
@@ -311,8 +298,8 @@ export default {
               "edit-config":
                 "domain.config." + this.domainRegister.id + ".system.site",
               "page.front":
-                this.homePageContent.nid && this.homePageContent.nid[0]
-                  ? "/node/" + this.homePageContent.nid[0].value
+                this.homePageContent.id && this.homePageContent.id[0]
+                  ? "/site-internet-entity/" + this.homePageContent.id[0].value
                   : "",
               name:
                 this.donneeInternetEntity.name[0] &&
@@ -346,20 +333,82 @@ export default {
       });
     });
   },
-  // On ajoute la config pour l'entete du layout.
-  addEnteteLayout(state) {
+  /**
+   * Les données données ont ete simplifié afin de permettre un ajout rapide.
+   * ( On envoit les données pour le paragraph. On cree le nouveau block, on assoccie le paragrah )
+   * @param {*} state
+   * @returns
+   */
+  createBlockContentHeader(state) {
+    state.storeFormRenderHeader.model.field_domain_access = [
+      { target_id: this.domainRegister.id },
+    ];
+    state.storeFormRenderHeader.model.field_domain_source = [
+      { target_id: this.domainRegister.id },
+    ];
     return this.bPost(
-      "/layout/add-subconfigure/defaults/block_content.layout_entete_m1.default/0/formatage_models_header1/" +
-        this.domainRegister.id,
-      state.storeLayout.configuration
+      "/vuejs-entity/entity/add-paragrph-in-entity/block_content/header",
+      {
+        paragraph: state.storeFormRenderHeader.model,
+        entity: {
+          info: [{ value: this.domainRegister.id + " : header" }],
+          field_domain_access: [{ target_id: this.domainRegister.id }],
+          field_domain_source: [{ target_id: this.domainRegister.id }],
+        },
+      }
     );
   },
+  /**
+   *
+   * @param {*} blockContent
+   */
+  addEntityToBlock(blockContent, region) {
+    return new Promise((resolv, reject) => {
+      if (blockContent["uuid"]) {
+        var type = blockContent["type"][0]["target_id"];
+        var uuid = blockContent["uuid"][0]["value"];
+        const values = {
+          id: this.domainRegister.id + type,
+          theme: this.domainRegister.id,
+          region: region,
+          plugin: "block_content:" + uuid,
+          visibility: {
+            domain: {
+              id: "domain",
+              negate: false,
+              context_mapping: {
+                domain: "@domain.current_domain_context:domain",
+              },
+              domains: {
+                [this.domainRegister.id]: this.domainRegister.id,
+              },
+            },
+          },
+        };
+        resolv(this.bPost("/vuejs-entity/entity/add-block-in-region", values));
+      } else {
+        reject();
+      }
+    });
+  },
   // On ajoute la config pour le footer du layout.
-  addfooterLayout(state) {
+  createBlockContentFooter(state) {
+    state.storeFormRenderFooter.model.field_domain_access = [
+      { target_id: this.domainRegister.id },
+    ];
+    state.storeFormRenderFooter.model.field_domain_source = [
+      { target_id: this.domainRegister.id },
+    ];
     return this.bPost(
-      "/layout/add-subconfigure/defaults/block_content.block_footers_themes.default/0/formatage_models_footer1/" +
-        this.domainRegister.id,
-      state.storeLayoutFooter.configuration
+      "/vuejs-entity/entity/add-paragrph-in-entity/block_content/footer",
+      {
+        paragraph: state.storeFormRenderFooter.model,
+        entity: {
+          info: [{ value: this.domainRegister.id + " : footer " }],
+          field_domain_access: [{ target_id: this.domainRegister.id }],
+          field_domain_source: [{ target_id: this.domainRegister.id }],
+        },
+      }
     );
   },
   //
@@ -491,6 +540,11 @@ export default {
     }
     return colors;
   },
+  /**
+   * Retorune les id/Label.
+   * L'id representant l'identifiant de la page à dupliquer.
+   * @deprecated
+   */
   getLabelPages() {
     const options = {};
     const form = store.state.renderByStep.form;

@@ -32,6 +32,7 @@ export default {
     class_css: { type: [Array] },
     field: { type: Object, required: true },
     model: { type: [Object, Array], required: true },
+    namespace_store: { type: String, required: true },
   },
   components: {
     ValidationProvider,
@@ -52,10 +53,16 @@ export default {
       return config.getRules(this.field);
     },
     setValue(vals) {
-      this.$store.dispatch("renderByStep/setValue", {
-        value: vals,
-        fieldName: this.field.name,
-      });
+      if (this.namespace_store) {
+        this.$store.dispatch(this.namespace_store, {
+          value: vals,
+          fieldName: this.field.name,
+        });
+      } else
+        this.$store.dispatch({
+          value: vals,
+          fieldName: this.field.name,
+        });
     },
     getValue() {
       if (this.model[this.field.name] && this.model[this.field.name][0]) {

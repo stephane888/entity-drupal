@@ -107,6 +107,7 @@ export default {
           state.model[payload.fieldName] = payload.value;
         }
       }
+      console.log("set value STATE : ", payload);
     },
     SET_FORM(state, payload) {
       state.form = payload.form;
@@ -165,7 +166,7 @@ export default {
     // Contient les champs d'une etape.
     stepFields: (state) => {
       const fields = [];
-      console.log(" Getters.fields :: ", state, " \n store : ", store.state);
+      //console.log(" Getters.fields :: ", state, " \n store : ", store.state);
       const step = state.steppers[state.current_step];
       var save_step = true;
       // validation de l'etape:

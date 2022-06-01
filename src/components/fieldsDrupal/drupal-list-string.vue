@@ -59,6 +59,7 @@ export default {
     class_css: { type: [Array] },
     field: { type: Object, required: true },
     model: { type: [Object], required: true },
+    namespace_store: { type: String, required: true },
   },
   components: {
     ValidationProvider,
@@ -91,7 +92,7 @@ export default {
     getImage() {
       this.field.entity_form_settings.list_options.forEach((option) => {
         if (!option.image_url) this.$set(option, "image_url", "");
-        if (option.image[0] && option.image_url == "") {
+        if (option.image && option.image[0] && option.image_url == "") {
           config.getImageUrl(option.image[0]).then((resp) => {
             option.image_url = resp.data;
           });
@@ -107,11 +108,16 @@ export default {
       e.forEach((item) => {
         vals.push({ value: item });
       });
-      this.$store.dispatch("renderByStep/setValue", {
-        value: vals,
-        fieldName: this.field.name,
-      });
-      console.log(vals, " \n : ", e);
+      if (this.namespace_store) {
+        this.$store.dispatch(this.namespace_store, {
+          value: vals,
+          fieldName: this.field.name,
+        });
+      } else
+        this.$store.dispatch({
+          value: vals,
+          fieldName: this.field.name,
+        });
     },
     /**
      * --

@@ -8,7 +8,6 @@
             :placeholder="field.placeholder"
             :state="getValidationState(v)"
             :name="field.name + 'title'"
-            debounce="500"
             @input="input"
           ></b-form-input>
           <b-form-input
@@ -16,7 +15,6 @@
             :placeholder="field.placeholder"
             :state="getValidationState(v)"
             :name="field.name + 'url'"
-            debounce="500"
             @input="input"
           ></b-form-input>
         </div>
@@ -40,6 +38,7 @@ export default {
     class_css: { type: [Array] },
     field: { type: Object, required: true },
     model: { type: [Object, Array], required: true },
+    namespace_store: { type: String, required: true },
   },
   components: {
     ValidationProvider,
@@ -47,6 +46,7 @@ export default {
   data() {
     return {
       input_value: { title: "", uri: "#" },
+      timer: null,
     };
   },
   mounted() {
@@ -60,24 +60,44 @@ export default {
       return config.getRules(this.field);
     },
     setValue(vals) {
-      this.$store.dispatch("renderByStep/setValue", {
-        value: vals,
-        fieldName: this.field.name,
-      });
+      if (this.namespace_store) {
+        this.$store.dispatch(this.namespace_store, {
+          value: vals,
+          fieldName: this.field.name,
+        });
+      } else
+        this.$store.dispatch({
+          value: vals,
+          fieldName: this.field.name,
+        });
     },
     getValue() {
       if (this.model[this.field.name] && this.model[this.field.name][0]) {
         var url = this.model[this.field.name][0];
         if (url.uri) {
-          url.uri = url.uri.replace("internal:", "");
+          return {
+            uri: url.uri.replace("internal:", ""),
+            title: url.title,
+            attributes: url.attributes,
+            options: url.options,
+          };
         }
         return url;
       }
     },
-    input(v) {
+    input() {
       const vals = [];
-      vals.push({ value: v });
-      this.setValue(vals);
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        const value = {
+          uri: "internal:" + this.input_value.uri,
+          title: this.input_value.title,
+          attributes: [],
+          options: [],
+        };
+        vals.push(value);
+        this.setValue(vals);
+      }, 500);
     },
   },
 };

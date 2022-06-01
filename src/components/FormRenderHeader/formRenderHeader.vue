@@ -22,6 +22,7 @@
               :field="render.field"
               :model="render.model"
               :class_css="[]"
+              namespace_store="storeFormRenderHeader/setValue"
               v-for="(render, k) in card.fields"
               :key="k"
             ></component>

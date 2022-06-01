@@ -8,18 +8,10 @@ export default {
     model: {},
   }),
   mutations: {
-    setValue(state, payload) {
-      if ((payload.key_config && payload.fieldName, payload.type)) {
-        if (
-          state.configuration[payload.key_config] &&
-          state.configuration[payload.key_config].fields[payload.fieldName] &&
-          state.configuration[payload.key_config].fields[payload.fieldName][
-            payload.type
-          ]
-        ) {
-          state.configuration[payload.key_config].fields[payload.fieldName][
-            payload.type
-          ].value = payload.value;
+    SET_VALUE(state, payload) {
+      if (payload.fieldName && payload.value) {
+        if (state.model[payload.fieldName]) {
+          state.model[payload.fieldName] = payload.value;
         }
       }
     },
@@ -39,7 +31,10 @@ export default {
     // ...
   },
   actions: {
-    //
+    // Permet de mettre à jour un champs ...
+    setValue({ commit }, payload) {
+      commit("SET_VALUE", payload);
+    },
   },
   getters: {
     //

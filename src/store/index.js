@@ -84,9 +84,6 @@ export default new Vuex.Store({
     //
     create_site({ commit, state }) {
       commit("ACTIVE_CREATION");
-      console.log("Données site utulisateur", state.renderByStep.model);
-      console.log("Layout entete", state.storeLayout.configuration);
-      console.log("Layout footer", state.storeLayoutFooter.configuration);
       saveEntity.runStep(state.build_steps, state);
     },
     //

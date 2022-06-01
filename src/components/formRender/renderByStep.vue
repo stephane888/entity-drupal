@@ -7,6 +7,7 @@
         :field="render.field"
         :model="render.model"
         :class_css="['fieldset-wrapper', render.field.type]"
+        namespace_store="renderByStep/setValue"
         v-for="(render, k) in stepFields"
         :key="k"
       ></component>
