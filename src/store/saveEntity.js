@@ -1,5 +1,6 @@
 import rootConfig from "../rootConfig";
 import store from "./index";
+import { limit } from "stringz";
 
 //
 export default {
@@ -8,7 +9,7 @@ export default {
   donneeInternetEntity: {},
   homePageContent: {},
   domainRegister: {},
-  autresPages: [],
+  OrtherPages: [],
   runStep(steps, state) {
     console.log("currentBuildStep : ", this.currentBuildStep);
     // On recupere
@@ -211,7 +212,8 @@ export default {
             };
             if (id) {
               this.bPost("/vuejs-entity/entity/generate-page-web/" + id, values)
-                .then(() => {
+                .then((resp) => {
+                  this.OrtherPages.push(resp.data);
                   var id = i + 1;
                   resolv(loop(id));
                 })
@@ -237,39 +239,48 @@ export default {
     });
   },
   /**
-   * La creation de menu se ferra apres la creation des pages.
+   * La creation de menu se fait apres la creation des pages.
    * Car les liens de pages ainsi generer devront etre utiliser comme lien.
    * @returns
    */
   CreateMenus() {
-    return new Promise((resolv) => {
-      const getMenus = () => {
-        return new Promise((resolv) => {
-          this.get("/vuejs-entity/menu-links/main").then((resp) => {
-            const menuItems = resp.data;
-            const PageMenus = this.convertPagesToItemsMainMenu();
-            console.log(" Active menu from page : ", PageMenus);
-            PageMenus.forEach((idmenu) => {
-              menuItems[idmenu] = idmenu;
-            });
-            resolv(menuItems);
-          });
-        });
+    return new Promise((resolv, reject) => {
+      // build menu :
+      const menu = {
+        id: limit(this.domainRegister.id + "_main"),
+        label: this.domainRegister.id + ": menu principal",
+        description: "Menu generé automatiquement",
       };
-      //
-      getMenus().then((menuItems) => {
-        console.log(" Menu to create : ", menuItems);
-        const values = {
-          hostname: [{ value: this.domainRegister.id }],
-          field_element_de_menu_valides: [{ value: JSON.stringify(menuItems) }],
-        };
-        this.bPost("/vuejs-entity/entity/save/wbumenudomain", values)
-          .then((resp) => {
-            resolv(resp);
-          })
-          .catch(() => {
-            resolv();
+      // build items
+      const items = [];
+      this.OrtherPages.forEach((page) => {
+        if (page.id[0] && page.id[0].value)
+          items.push({
+            title: [
+              {
+                value: page.name[0]
+                  ? page.name[0].value
+                  : "lien genere :" + page.id[0].value,
+              },
+            ],
+            enabled: [{ value: true }],
+            link: [
+              { uri: "internal:/site-internet-entity/" + page.id[0].value },
+            ],
           });
+      });
+      // contruit le menus et les items.
+      this.bPost("/vuejs-entity/entity/add-menu-items", {
+        menu: menu,
+        items: items,
+        domain: {
+          field_domain_access: this.domainRegister.id,
+          field_domain_source: this.domainRegister.id,
+        },
+      }).then((resp) => {
+        if (resp.data.block_content)
+          resolv(this.addEntityToBlock(resp.data.block_content, "header"));
+        else reject();
       });
     });
   },
@@ -368,7 +379,7 @@ export default {
         var type = blockContent["type"][0]["target_id"];
         var uuid = blockContent["uuid"][0]["value"];
         const values = {
-          id: this.domainRegister.id + type,
+          id: limit(this.domainRegister.id + type, 30),
           theme: this.domainRegister.id,
           region: region,
           plugin: "block_content:" + uuid,
