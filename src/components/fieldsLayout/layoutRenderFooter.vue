@@ -43,7 +43,7 @@
         <label> Apercu du pied de page </label>
         <img
           class="img-fluid"
-          src="https://lesroisdelareno.fr/sites/default/files/2022-05/opera-instantane_2022-05-05_111523_lesroisdelareno.kksa_.png"
+          src="http://wb-horizon.kksa/sites/default/files/2022-06/creer-votre-site-web-en-5-minutes-drush-site-install-1.png"
         />
       </div>
     </div>

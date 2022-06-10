@@ -35,7 +35,7 @@
         <label> Apercu de l'entete </label>
         <img
           class="img-fluid"
-          src="https://lesroisdelareno.fr/sites/default/files/2022-05/opera-instantane_2022-05-05_111359_lesroisdelareno.kksa_.png"
+          src="http://wb-horizon.kksa/sites/default/files/2022-06/creer-votre-site-web-en-5-minutes-drush-site-install-2.png"
         />
       </div>
     </div>

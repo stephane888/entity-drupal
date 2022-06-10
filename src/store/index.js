@@ -50,6 +50,11 @@ export default new Vuex.Store({
         status: false,
         step: "layout_footer",
       },
+      {
+        titre: "Genere les styles du theme",
+        status: false,
+        step: "generate_style",
+      },
       // Selectionnner les menus, les pages, le logo.
     ],
     // utilisateur connecter.

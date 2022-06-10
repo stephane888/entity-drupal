@@ -33,10 +33,10 @@
     <div class="col-md-6">
       <div class="position-sticky render-model">
         <label> Apercu de pied de page </label>
-        <!-- <img
+        <img
           class="img-fluid"
-          src="http://www.wb-horizon.com/sites/default/files/2022-05/opera-instantane_2022-05-05_111359_lesroisdelareno.kksa_.png"
-        /> -->
+          src="/sites/default/files/2022-06/creer-votre-site-web-en-5-minutes-drush-site-install-1.png"
+        />
       </div>
     </div>
   </div>

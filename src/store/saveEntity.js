@@ -67,8 +67,8 @@ export default {
           this.CreateOrtherPages().then(() => {
             this.CreateContent()
               .then((resp) => {
+                this.homePageContent = resp.data;
                 setTimeout(() => {
-                  this.homePageContent = resp.data;
                   step.status = "ok";
                   this.currentBuildStep++;
                   this.runStep(steps, state);
@@ -132,6 +132,22 @@ export default {
             this.runStep(steps, state);
           }
           break;
+        case "generate_style":
+          step.status = "run";
+          if (this.domainRegister.id) {
+            this.generateStyleTheme().then(() => {
+              setTimeout(() => {
+                step.status = "ok";
+                this.currentBuildStep++;
+                this.runStep(steps, state);
+              }, 500);
+            });
+          } else {
+            step.status = "error";
+            this.currentBuildStep++;
+            this.runStep(steps, state);
+          }
+          break;
         default:
           console.log("pre active finish");
           store.commit("ACTIVE_FINISH");
@@ -182,7 +198,7 @@ export default {
         ? "Bienvenue chez " + this.donneeInternetEntity.name[0].value
         : "Theme generer";
     const values = {
-      title: [{ value: title }],
+      name: [{ value: title }],
       field_domain_access: [{ target_id: this.domainRegister.id }],
       field_domain_source: [{ target_id: this.domainRegister.id }],
       is_default_theme: [{ value: false }],
@@ -199,6 +215,7 @@ export default {
         this.donneeInternetEntity.pages &&
         this.donneeInternetEntity.pages.length
       ) {
+        const options = this.getLabelPages();
         const loop = (i = 0, essaie = 1) => {
           return new Promise((resolv) => {
             const id = this.donneeInternetEntity.pages[i]
@@ -209,6 +226,7 @@ export default {
               field_domain_source: [{ target_id: this.domainRegister.id }],
               is_default_theme: [{ value: false }],
               is_home_page: [{ value: false }],
+              name: [{ value: options[id] ? options[id] : "page generate" }],
             };
             if (id) {
               this.bPost("/vuejs-entity/entity/generate-page-web/" + id, values)
@@ -247,7 +265,7 @@ export default {
     return new Promise((resolv, reject) => {
       // build menu :
       const menu = {
-        id: limit(this.domainRegister.id + "_main"),
+        id: limit(this.domainRegister.id + "_main", 30, ""),
         label: this.domainRegister.id + ": menu principal",
         description: "Menu generé automatiquement",
       };
@@ -277,32 +295,59 @@ export default {
           field_domain_access: this.domainRegister.id,
           field_domain_source: this.domainRegister.id,
         },
-      }).then((resp) => {
-        if (resp.data.block_content)
-          resolv(this.addEntityToBlock(resp.data.block_content, "header"));
-        else reject();
-      });
+      })
+        .then((resp) => {
+          if (resp.data.block_content) {
+            resolv(this.addEntityToBlock(resp.data.block_content, "header"));
+          } else reject();
+        })
+        .catch(() => {
+          reject();
+        });
     });
+  },
+  /**
+   * -
+   */
+  addDefaultBlockInRegion() {
+    // Add default content region
+    const id_system = limit("mainpagecontent" + this.domainRegister.id, 30, "");
+    const system_main_block = {
+      id: id_system,
+      theme: this.domainRegister.id,
+      region: "content",
+      plugin: "system_main_block",
+      status: true,
+      visibility: {
+        domain: {
+          id: "domain",
+          negate: false,
+          context_mapping: {
+            domain: "@domain.current_domain_context:domain",
+          },
+          domains: {
+            [this.domainRegister.id]: this.domainRegister.id,
+          },
+        },
+      },
+      settings: {
+        id: id_system,
+        label: this.domainRegister.id + " : contenu principal",
+        label_display: false,
+        provider: "system",
+      },
+      weight: 0,
+    };
+    return this.bPost(
+      "/vuejs-entity/entity/add-block-in-region",
+      system_main_block
+    );
   },
   // On cree le theme de maniere statique, mais il faudra le rendre dynamique.
   // Il faudra aussi definir la page daccueil.
   async CreateTheme() {
-    const idHome = window.location.pathname.split("/").pop();
-    var lirairy = "lesroisdelareno/prestataires_m5";
-    switch (idHome) {
-      case "9":
-        lirairy = "lesroisdelareno/prestataires_m8";
-        break;
-      case "1":
-        lirairy = "lesroisdelareno/prestataires_m7";
-        break;
-      case "10":
-        lirairy = "lesroisdelareno/prestataires_m6";
-        break;
-    }
     return new Promise((resolv) => {
       var values = {
-        lirairy: lirairy,
         site_config: [
           {
             value: JSON.stringify({
@@ -327,6 +372,7 @@ export default {
           this.donneeInternetEntity.image_logo.length
             ? this.donneeInternetEntity.image_logo
             : [],
+        run_npm: [{ value: false }],
       };
       //
       if (this.domainRegister.id) {
@@ -351,23 +397,31 @@ export default {
    * @returns
    */
   createBlockContentHeader(state) {
-    state.storeFormRenderHeader.model.field_domain_access = [
-      { target_id: this.domainRegister.id },
-    ];
-    state.storeFormRenderHeader.model.field_domain_source = [
-      { target_id: this.domainRegister.id },
-    ];
-    return this.bPost(
-      "/vuejs-entity/entity/add-paragrph-in-entity/block_content/header",
-      {
-        paragraph: state.storeFormRenderHeader.model,
-        entity: {
-          info: [{ value: this.domainRegister.id + " : header" }],
-          field_domain_access: [{ target_id: this.domainRegister.id }],
-          field_domain_source: [{ target_id: this.domainRegister.id }],
-        },
-      }
-    );
+    return new Promise((resolv) => {
+      state.storeFormRenderHeader.model.field_domain_access = [
+        { target_id: this.domainRegister.id },
+      ];
+      state.storeFormRenderHeader.model.field_domain_source = [
+        { target_id: this.domainRegister.id },
+      ];
+      //pas necesssaire
+      this.addDefaultBlockInRegion();
+      this.CreateMenus().then(() => {
+        resolv(
+          this.bPost(
+            "/vuejs-entity/entity/add-paragrph-in-entity/block_content/header",
+            {
+              paragraph: state.storeFormRenderHeader.model,
+              entity: {
+                info: [{ value: this.domainRegister.id + " : header" }],
+                field_domain_access: [{ target_id: this.domainRegister.id }],
+                field_domain_source: [{ target_id: this.domainRegister.id }],
+              },
+            }
+          )
+        );
+      });
+    });
   },
   /**
    *
@@ -376,13 +430,17 @@ export default {
   addEntityToBlock(blockContent, region) {
     return new Promise((resolv, reject) => {
       if (blockContent["uuid"]) {
-        var type = blockContent["type"][0]["target_id"];
-        var uuid = blockContent["uuid"][0]["value"];
+        const type = blockContent["type"][0]["target_id"];
+        const uuid = blockContent["uuid"][0]["value"];
+        const label = blockContent["info"][0]["value"];
+        const id_domaine = limit(this.domainRegister.id, 20, "");
+        const id_system = limit(id_domaine + type, 30, "");
         const values = {
-          id: limit(this.domainRegister.id + type, 30),
+          id: id_system,
           theme: this.domainRegister.id,
           region: region,
           plugin: "block_content:" + uuid,
+          status: true,
           visibility: {
             domain: {
               id: "domain",
@@ -394,6 +452,12 @@ export default {
                 [this.domainRegister.id]: this.domainRegister.id,
               },
             },
+          },
+          settings: {
+            id: id_system,
+            label: label,
+            label_display: false,
+            provider: "block_content",
           },
         };
         resolv(this.bPost("/vuejs-entity/entity/add-block-in-region", values));
@@ -422,7 +486,24 @@ export default {
       }
     );
   },
-  //
+
+  generateStyleTheme() {
+    return new Promise((resolv) => {
+      this.bGet(
+        "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id
+      ).then(() => {
+        resolv(
+          this.bGet(
+            "/generate-style-theme/update-style-theme/" + this.domainRegister.id
+          )
+        );
+      });
+    });
+  },
+  /**
+   *
+   * @deprecated
+   */
   convertPagesToItemsMainMenu() {
     const items = [];
     if (

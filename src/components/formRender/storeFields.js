@@ -139,8 +139,14 @@ export default {
     loadForm({ commit }) {
       commit("ACTIVE_RUNNING");
       console.log(" loadForm config ", config);
+      const param = {
+        homepage: window.location.pathname.split("/").pop(),
+      };
       return config
-        .bPost("/vuejs-entity/form/donnee_internet_entity/default/bundle")
+        .bPost(
+          "/vuejs-entity/form/donnee_internet_entity/default/bundle",
+          param
+        )
         .then((resp) => {
           if (resp.data) {
             commit("SET_FORM", resp.data);
