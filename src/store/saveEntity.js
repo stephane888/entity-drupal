@@ -11,7 +11,7 @@ export default {
   domainRegister: {},
   OrtherPages: [],
   runStep(steps, state) {
-    console.log("currentBuildStep : ", this.currentBuildStep);
+    console.log(" currentBuildStep : ", this.currentBuildStep);
     // On recupere
     var getDataStep = () => {
       if (steps[this.currentBuildStep]) {
@@ -187,6 +187,8 @@ export default {
         "/vuejs-entity/domaine/add/" +
           this.donneeInternetEntity.domain_ovh_entity[0].target_id
       );
+    } else {
+      throw new Error(" Le nom de domaine n'a pas pu etre creer ");
     }
   },
   // On va cree la page d'accueil en function de l'identifiant present dans l'url.

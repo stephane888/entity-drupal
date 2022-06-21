@@ -2,7 +2,7 @@
   <div>
     <label> Creer votre site maintenant !!! </label>
     <p class="step-donneesite--label">
-      {{ strings.page_save_1 }}
+      <span v-html="strings.page_save_1"></span>
     </p>
     <div class="text-left mx-auto content-save-text" v-if="creation_running">
       <ul class="puce-step-vertical step-build">
@@ -40,7 +40,7 @@
       </div>
       <div class="action d-flex flex-column" v-if="finish_status">
         <b-button @click="open_new_site">
-          {{ strings.page_save_vue }}
+          <span v-html="strings.page_save_vue"></span>
           <b-icon icon="award" font-scale="1.3" class="float-right"></b-icon>
         </b-button>
         <b-button @click="open_new_site_admin">

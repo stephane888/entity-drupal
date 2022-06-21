@@ -68,9 +68,16 @@ export default {
     this.getValue();
   },
   methods: {
+    /**
+     *
+     * @param {*} param0
+     */
     getValidationState({ dirty, validated, valid = null }) {
       return (dirty || validated) && !valid ? valid : null;
     },
+    /**
+     *
+     */
     getRules() {
       return config.getRules(this.field);
     },

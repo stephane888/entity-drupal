@@ -30179,10 +30179,13 @@ var es_string_split = __webpack_require__(60405);
 var es_function_name = __webpack_require__(48613);
 // EXTERNAL MODULE: ../wbuutilities/node_modules/core-js/modules/es.json.stringify.js
 var es_json_stringify = __webpack_require__(79092);
+// EXTERNAL MODULE: ../wbuutilities/node_modules/core-js/modules/es.array.join.js
+var es_array_join = __webpack_require__(31826);
 // EXTERNAL MODULE: ../wbuutilities/node_modules/axios/index.js
 var axios = __webpack_require__(39835);
 var axios_default = /*#__PURE__*/__webpack_require__.n(axios);
 ;// CONCATENATED MODULE: ../wbuutilities/src/Ajax/basic.js
+
 
 
 
@@ -30269,7 +30272,7 @@ var basicRequest = {
     var _this = this;
 
     return new Promise(function (resolv, reject) {
-      if (_this.languageId) url = "/" + _this.languageId + url;
+      if (_this.languageId || _this.languageId !== undefined && _this.languageId !== null) url = "/" + _this.languageId + url;
       console.log(" LanguageId : ", _this.languageId);
       var urlFinal = url.includes("://") ? url : _this.getBaseUrl() + url;
       InstAxios.post(urlFinal, datas, configs).then(function (reponse) {
@@ -30314,7 +30317,7 @@ var basicRequest = {
     var _this3 = this;
 
     return new Promise(function (resolv, reject) {
-      if (_this3.languageId) url = "/" + _this3.languageId + url;
+      if (_this3.languageId || _this3.languageId !== undefined && _this3.languageId !== null) url = "/" + _this3.languageId + url;
       var urlFinal = url.includes("://") ? url : _this3.getBaseUrl() + url;
       InstAxios.get(urlFinal, configs).then(function (reponse) {
         resolv({
@@ -30348,11 +30351,11 @@ var basicRequest = {
         var myInit = {
           method: "POST",
           headers: headers,
-          //mode: "cors",
+          // mode: "cors",
           body: JSON.stringify({
             upload: fileEncode.base64,
-            filename: fileCompose[0],
-            ext: fileCompose[1],
+            ext: fileCompose.pop(),
+            filename: fileCompose.join("."),
             id: id
           }),
           cache: "default"
@@ -31165,8 +31168,6 @@ var getBreakpointsDownCached = function getBreakpointsDownCached() {
   breakpoints[breakpoints.length - 1] = '';
   return breakpoints;
 };
-// EXTERNAL MODULE: ../wbuutilities/node_modules/core-js/modules/es.array.join.js
-var es_array_join = __webpack_require__(31826);
 ;// CONCATENATED MODULE: ../wbuutilities/node_modules/bootstrap-vue/esm/constants/env.js
 
 
@@ -93082,6 +93083,7 @@ var dist = __webpack_require__(40473);
 
 
 
+
  //
 
 /* harmony default export */ var saveEntity = ((0,objectSpread2/* default */.Z)((0,objectSpread2/* default */.Z)({}, rootConfig/* default */.Z), {}, {
@@ -93093,7 +93095,7 @@ var dist = __webpack_require__(40473);
   runStep: function runStep(steps, state) {
     var _this = this;
 
-    console.log("currentBuildStep : ", this.currentBuildStep); // On recupere
+    console.log(" currentBuildStep : ", this.currentBuildStep); // On recupere
 
     var getDataStep = function getDataStep() {
       if (steps[_this.currentBuildStep]) {
@@ -93267,6 +93269,8 @@ var dist = __webpack_require__(40473);
       }); // Save domaine on drupal
 
       return this.bPost("/vuejs-entity/domaine/add/" + this.donneeInternetEntity.domain_ovh_entity[0].target_id);
+    } else {
+      throw new Error(" Le nom de domaine n'a pas pu etre creer ");
     }
   },
   // On va cree la page d'accueil en function de l'identifiant present dans l'url.
@@ -95579,9 +95583,9 @@ var html_render_component = (0,componentNormalizer/* default */.Z)(
 )
 
 /* harmony default export */ var html_render = (html_render_component.exports);
-;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/fieldsDrupal/drupal-file.vue?vue&type=template&id=122805f4&
-var drupal_filevue_type_template_id_122805f4_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"vuejs-uploader",class:_vm.class_css},[_c('ValidationProvider',{attrs:{"name":_vm.field.name,"rules":_vm.getRules()},scopedSlots:_vm._u([{key:"default",fn:function(v){return [_c('b-form-group',{attrs:{"label":_vm.field.label,"description":_vm.field.description}},[_c('b-form-file',{attrs:{"placeholder":"Ajouter un fichier ...","drop-placeholder":"Drop file here...","multiple":_vm.cardinality,"accept":".jpg, .png, .gif, webp","size":"sm","state":_vm.getValidationState(v)},on:{"input":_vm.previewImage},model:{value:(_vm.files),callback:function ($$v) {_vm.files=$$v},expression:"files"}})],1)]}}])}),_c('div',{staticClass:"previews"},_vm._l((_vm.toUplode),function(fil,i){return _c('div',{key:i},[_c('b-img',{staticClass:"img-preview",attrs:{"src":fil.url,"fluid":"","alt":"Fluid image","thumbnail":""}})],1)}),0)],1)}
-var drupal_filevue_type_template_id_122805f4_staticRenderFns = []
+;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/fieldsDrupal/drupal-file.vue?vue&type=template&id=4feb73d8&
+var drupal_filevue_type_template_id_4feb73d8_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"vuejs-uploader",class:_vm.class_css},[_c('ValidationProvider',{attrs:{"name":_vm.field.name,"rules":_vm.getRules()},scopedSlots:_vm._u([{key:"default",fn:function(v){return [_c('b-form-group',{attrs:{"label":_vm.field.label,"description":_vm.field.description}},[_c('b-form-file',{attrs:{"placeholder":"Ajouter un fichier ...","drop-placeholder":"Drop file here...","multiple":_vm.cardinality,"accept":".jpg, .png, .gif, webp","size":"sm","state":_vm.getValidationState(v)},on:{"input":_vm.previewImage},model:{value:(_vm.files),callback:function ($$v) {_vm.files=$$v},expression:"files"}})],1)]}}])}),_c('div',{staticClass:"previews"},_vm._l((_vm.toUplode),function(fil,i){return _c('div',{key:i},[_c('b-img',{staticClass:"img-preview",attrs:{"src":fil.url,"fluid":"","alt":"Fluid image","thumbnail":""}})],1)}),0)],1)}
+var drupal_filevue_type_template_id_4feb73d8_staticRenderFns = []
 
 
 ;// CONCATENATED MODULE: ./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib/index.js??clonedRuleSet-80[0].rules[0].use[1]!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/fieldsDrupal/drupal-file.vue?vue&type=script&lang=js&
@@ -95668,6 +95672,10 @@ var drupal_filevue_type_template_id_122805f4_staticRenderFns = []
     this.getValue();
   },
   methods: {
+    /**
+     *
+     * @param {*} param0
+     */
     getValidationState: function getValidationState(_ref) {
       var dirty = _ref.dirty,
           validated = _ref.validated,
@@ -95675,6 +95683,10 @@ var drupal_filevue_type_template_id_122805f4_staticRenderFns = []
           valid = _ref$valid === void 0 ? null : _ref$valid;
       return (dirty || validated) && !valid ? valid : null;
     },
+
+    /**
+     *
+     */
     getRules: function getRules() {
       return loadField.getRules(this.field);
     },
@@ -95771,8 +95783,8 @@ var drupal_filevue_type_template_id_122805f4_staticRenderFns = []
 ;
 var drupal_file_component = (0,componentNormalizer/* default */.Z)(
   fieldsDrupal_drupal_filevue_type_script_lang_js_,
-  drupal_filevue_type_template_id_122805f4_render,
-  drupal_filevue_type_template_id_122805f4_staticRenderFns,
+  drupal_filevue_type_template_id_4feb73d8_render,
+  drupal_filevue_type_template_id_4feb73d8_staticRenderFns,
   false,
   null,
   null,
@@ -96139,14 +96151,14 @@ var page_register_component = (0,componentNormalizer/* default */.Z)(
 )
 
 /* harmony default export */ var page_register = (page_register_component.exports);
-;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/sections/page-save.vue?vue&type=template&id=4acdab4e&
-var page_savevue_type_template_id_4acdab4e_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('label',[_vm._v(" Creer votre site maintenant !!! ")]),_c('p',{staticClass:"step-donneesite--label"},[_vm._v(" "+_vm._s(_vm.strings.page_save_1)+" ")]),(_vm.creation_running)?_c('div',{staticClass:"text-left mx-auto content-save-text"},[_c('ul',{staticClass:"puce-step-vertical step-build"},_vm._l((_vm.build_steps),function(item,i){return _c('li',{key:i,class:[
+;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/sections/page-save.vue?vue&type=template&id=ed9fe4b8&
+var page_savevue_type_template_id_ed9fe4b8_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',[_c('label',[_vm._v(" Creer votre site maintenant !!! ")]),_c('p',{staticClass:"step-donneesite--label"},[_c('span',{domProps:{"innerHTML":_vm._s(_vm.strings.page_save_1)}})]),(_vm.creation_running)?_c('div',{staticClass:"text-left mx-auto content-save-text"},[_c('ul',{staticClass:"puce-step-vertical step-build"},_vm._l((_vm.build_steps),function(item,i){return _c('li',{key:i,class:[
           item.status == 'ok' ? 'active' : '',
-          item.status == 'error' ? 'text-danger' : '' ]},[_vm._v(" "+_vm._s(item.titre)+" "),(item.status == 'run')?_c('b-icon',{staticClass:"ml-auto",attrs:{"icon":"three-dots","font-scale":"1.3","animation":"cylon","variant":"primary"}}):_vm._e(),(item.status == 'ok')?_c('b-icon',{staticClass:"ml-auto",attrs:{"icon":"check2","font-scale":"1.5","variant":"primary"}}):_vm._e()],1)}),0),(_vm.finish_status)?_c('div',{staticClass:"my-5 h3 text-primary d-none"},[_vm._v(" Votre site serra disponible d'ici 15 minutes "),_vm._m(0)]):_vm._e(),(_vm.finish_status)?_c('div',{staticClass:"action d-flex flex-column"},[_c('b-button',{on:{"click":_vm.open_new_site}},[_vm._v(" "+_vm._s(_vm.strings.page_save_vue)+" "),_c('b-icon',{staticClass:"float-right",attrs:{"icon":"award","font-scale":"1.3"}})],1),_c('b-button',{on:{"click":_vm.open_new_site_admin}},[_vm._v(" "+_vm._s(_vm.strings.page_save_admin)+" "),_c('b-icon',{staticClass:"float-right",attrs:{"icon":"folder-symlink","font-scale":"1.3"}})],1)],1):_vm._e(),(_vm.finish_status)?_c('div',{staticClass:"my-5 h3"},[_vm._v(" "+_vm._s(_vm.strings.page_save_url)+" "),_c('a',{on:{"click":_vm.open_new_site}},[_c('b',[_vm._v(" "+_vm._s(_vm.new_hostname)+" ")])])]):_vm._e()]):_vm._e()])}
-var page_savevue_type_template_id_4acdab4e_staticRenderFns = [function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('small',[_c('i',{staticClass:"d-block"},[_vm._v(" (le temps de progagation des données DNS) ")])])}]
+          item.status == 'error' ? 'text-danger' : '' ]},[_vm._v(" "+_vm._s(item.titre)+" "),(item.status == 'run')?_c('b-icon',{staticClass:"ml-auto",attrs:{"icon":"three-dots","font-scale":"1.3","animation":"cylon","variant":"primary"}}):_vm._e(),(item.status == 'ok')?_c('b-icon',{staticClass:"ml-auto",attrs:{"icon":"check2","font-scale":"1.5","variant":"primary"}}):_vm._e()],1)}),0),(_vm.finish_status)?_c('div',{staticClass:"my-5 h3 text-primary d-none"},[_vm._v(" Votre site serra disponible d'ici 15 minutes "),_vm._m(0)]):_vm._e(),(_vm.finish_status)?_c('div',{staticClass:"action d-flex flex-column"},[_c('b-button',{on:{"click":_vm.open_new_site}},[_c('span',{domProps:{"innerHTML":_vm._s(_vm.strings.page_save_vue)}}),_c('b-icon',{staticClass:"float-right",attrs:{"icon":"award","font-scale":"1.3"}})],1),_c('b-button',{on:{"click":_vm.open_new_site_admin}},[_vm._v(" "+_vm._s(_vm.strings.page_save_admin)+" "),_c('b-icon',{staticClass:"float-right",attrs:{"icon":"folder-symlink","font-scale":"1.3"}})],1)],1):_vm._e(),(_vm.finish_status)?_c('div',{staticClass:"my-5 h3"},[_vm._v(" "+_vm._s(_vm.strings.page_save_url)+" "),_c('a',{on:{"click":_vm.open_new_site}},[_c('b',[_vm._v(" "+_vm._s(_vm.new_hostname)+" ")])])]):_vm._e()]):_vm._e()])}
+var page_savevue_type_template_id_ed9fe4b8_staticRenderFns = [function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('small',[_c('i',{staticClass:"d-block"},[_vm._v(" (le temps de progagation des données DNS) ")])])}]
 
 
-;// CONCATENATED MODULE: ./src/components/sections/page-save.vue?vue&type=template&id=4acdab4e&
+;// CONCATENATED MODULE: ./src/components/sections/page-save.vue?vue&type=template&id=ed9fe4b8&
 
 ;// CONCATENATED MODULE: ./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib/index.js??clonedRuleSet-80[0].rules[0].use[1]!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/sections/page-save.vue?vue&type=script&lang=js&
 
@@ -96258,8 +96270,8 @@ var page_savevue_type_template_id_4acdab4e_staticRenderFns = [function () {var _
 ;
 var page_save_component = (0,componentNormalizer/* default */.Z)(
   sections_page_savevue_type_script_lang_js_,
-  page_savevue_type_template_id_4acdab4e_render,
-  page_savevue_type_template_id_4acdab4e_staticRenderFns,
+  page_savevue_type_template_id_ed9fe4b8_render,
+  page_savevue_type_template_id_ed9fe4b8_staticRenderFns,
   false,
   null,
   null,
