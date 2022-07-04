@@ -1,12 +1,16 @@
 <template>
   <div>
-    <label> Veillez vous connecter, afin de sauvegarder vos données </label>
-    <loginRegister action_after_login="emit_even"></loginRegister>
+    <label v-html="strings.ask_to_login"></label>
+    <loginRegister
+      action_after_login="emit_even"
+      model_register_form="generate_password"
+    ></loginRegister>
   </div>
 </template>
 
 <script>
 import { loginRegister } from "drupal-vuejs";
+import { mapState } from "vuex";
 import users from "../../users.js";
 export default {
   name: "page-register",
@@ -33,6 +37,11 @@ export default {
         false
       );
     },
+  },
+  computed: {
+    ...mapState({
+      strings: (state) => state.strings,
+    }),
   },
 };
 </script>
