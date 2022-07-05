@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="last-stepe">
     <label> Creer votre site maintenant !!! </label>
     <p class="step-donneesite--label">
       <span v-html="strings.page_save_1"></span>

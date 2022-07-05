@@ -9,7 +9,7 @@ import sectionRegister from "../sections/page-register.vue";
 import sectionSave from "../sections/page-save.vue";
 import router from "../../router";
 import store from "../../store/index";
-console.log("config store : ", config);
+// console.log("config store : ", config);
 export default {
   namespaced: true,
   state: () => ({
@@ -85,6 +85,7 @@ export default {
     // Contient l'etat du formulaire.
     model: {},
   }),
+
   mutations: {
     // Passe à l'etape suivante.
     nextStep(state, step = null) {
@@ -105,13 +106,15 @@ export default {
       if (payload.fieldName && payload.value) {
         if (state.model[payload.fieldName]) {
           state.model[payload.fieldName] = payload.value;
+          localStorage.setItem("app.model", JSON.stringify(state.model));
         }
       }
-      console.log("set value STATE : ", payload);
     },
     SET_FORM(state, payload) {
       state.form = payload.form;
       state.model = payload.model;
+      localStorage.setItem("app.model", JSON.stringify(state.model));
+      localStorage.setItem("app.form", JSON.stringify(state.form));
     },
     ACTIVE_RUNNING(state) {
       state.running = true;
@@ -119,10 +122,19 @@ export default {
     DISABLE_RUNNING(state) {
       state.running = false;
     },
+    /**
+     * @deprecated 'Not use'
+     * @param {*} state
+     * @param {*} payload
+     */
     ADD_VALID_STEP(state, payload) {
       if (!state.valid_steppers.includes(payload))
         state.valid_steppers.push({ value: payload });
     },
+    /**
+     * @deprecated 'Not use'
+     * @param {*} state
+     */
     REMOVE_LAST_VALID_STEP(state) {
       const ar = state.valid_steppers;
       const n_ar = [];
@@ -132,6 +144,9 @@ export default {
       console.log("n_ar : ", n_ar);
       state.valid_steppers = n_ar;
     },
+    // SET_VALID_STEPPERS(state, payload) {
+    //   state.valid_steppers = payload;
+    // },
     // ...
   },
   actions: {
@@ -149,8 +164,19 @@ export default {
         )
         .then((resp) => {
           if (resp.data) {
-            commit("SET_FORM", resp.data);
-            commit("DISABLE_RUNNING");
+            //on verifie si on a des données en cache.
+            if (localStorage.getItem("app.model")) {
+              const model = JSON.parse(localStorage.getItem("app.model"));
+              const form = JSON.parse(localStorage.getItem("app.form"));
+              // const valid_steppers = JSON.parse(
+              //   localStorage.getItem("app.valid_steppers")
+              // );
+              commit("SET_FORM", { form: form, model: model });
+              // commit("SET_VALID_STEPPERS", valid_steppers);
+            } else {
+              commit("SET_FORM", resp.data);
+              commit("DISABLE_RUNNING");
+            }
           }
         });
     },
@@ -251,9 +277,18 @@ export default {
           }
         });
       }
-      // ajout de l'epape
-      if (state.valid_steppers.indexOf(state.current_step) === -1 && save_step)
+      // Ajout de l'epape
+      if (
+        state.valid_steppers.indexOf(state.current_step) === -1 &&
+        save_step
+      ) {
         state.valid_steppers.push(state.current_step);
+        // localStorage.setItem(
+        //   "app.valid_steppers",
+        //   JSON.stringify(state.valid_steppers)
+        // );
+      }
+
       return fields;
     },
   },

@@ -72,6 +72,8 @@ export default new Vuex.Store({
     },
     ACTIVE_FINISH(state) {
       state.finish_status = true;
+      localStorage.removeItem("app.model");
+      localStorage.removeItem("app.form");
     },
     SET_HOSTNAME(state, payload) {
       if (payload.domain && payload.scheme) {
