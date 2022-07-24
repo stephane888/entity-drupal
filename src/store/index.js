@@ -61,6 +61,8 @@ export default new Vuex.Store({
     user: {},
     // Contient les textes traduites.
     strings: {},
+    //
+    messages: { errors: [], warnings: [] },
   },
   getters: {},
   mutations: {
@@ -72,8 +74,6 @@ export default new Vuex.Store({
     },
     ACTIVE_FINISH(state) {
       state.finish_status = true;
-      localStorage.removeItem("app.model");
-      localStorage.removeItem("app.form");
     },
     SET_HOSTNAME(state, payload) {
       if (payload.domain && payload.scheme) {
@@ -85,6 +85,17 @@ export default new Vuex.Store({
     },
     SET_STRINGS(state, strings) {
       state.strings = strings;
+    },
+    SET_WARNING_MESSAGES(state, messages) {
+      state.messages.warnings = messages;
+    },
+    SET_ERROR_MESSAGES(state, messages) {
+      state.messages.errors = messages;
+    },
+    CLEAN_LOCALSTORAGE() {
+      localStorage.removeItem("app.model");
+      localStorage.removeItem("app.form");
+      localStorage.removeItem("app.hash");
     },
   },
   actions: {

@@ -56,7 +56,7 @@ export default {
         ],
       },
       { keys: ["image_logo"] },
-      { keys: ["pages"] },
+      // { keys: ["pages"] },
       // {
       //   keys: ["description"],
       // },
@@ -151,7 +151,7 @@ export default {
   },
   actions: {
     // On charge les données du formulaire.
-    loadForm({ commit }) {
+    loadForm({ commit, state }) {
       commit("ACTIVE_RUNNING");
       console.log(" loadForm config ", config);
       const param = {
@@ -164,18 +164,34 @@ export default {
         )
         .then((resp) => {
           if (resp.data) {
+            //on recupere la valeur hash
+            const urlParams = new URLSearchParams(window.location.search);
+            const hash = urlParams.get("hash");
+            console.log("hash", hash);
             //on verifie si on a des données en cache.
-            if (localStorage.getItem("app.model")) {
+            if (
+              localStorage.getItem("app.model") &&
+              hash == localStorage.getItem("app.hash")
+            ) {
               const model = JSON.parse(localStorage.getItem("app.model"));
               const form = JSON.parse(localStorage.getItem("app.form"));
-              // const valid_steppers = JSON.parse(
-              //   localStorage.getItem("app.valid_steppers")
-              // );
               commit("SET_FORM", { form: form, model: model });
               // commit("SET_VALID_STEPPERS", valid_steppers);
             } else {
-              commit("SET_FORM", resp.data);
-              commit("DISABLE_RUNNING");
+              /**
+               * On doit se rassurer que l'utilisateur est à l'etape 0;
+               * Si c'est pas le cas on le renvoit à l'etape initial.
+               * ( Car dans ce cas de figure, il nya pas ou plus de donnée en cache. )
+               */
+              if (state.current_step) {
+                window.location.replace(
+                  window.location.pathname + window.location.search
+                );
+              } else {
+                commit("SET_FORM", resp.data);
+                commit("DISABLE_RUNNING");
+                localStorage.setItem("app.hash", hash);
+              }
             }
           }
         });
@@ -283,10 +299,6 @@ export default {
         save_step
       ) {
         state.valid_steppers.push(state.current_step);
-        // localStorage.setItem(
-        //   "app.valid_steppers",
-        //   JSON.stringify(state.valid_steppers)
-        // );
       }
 
       return fields;

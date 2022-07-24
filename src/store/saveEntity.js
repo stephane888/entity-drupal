@@ -10,6 +10,7 @@ export default {
   homePageContent: {},
   domainRegister: {},
   OrtherPages: [],
+  messages: { errors: [], warnings: [] },
   runStep(steps, state) {
     console.log(" currentBuildStep : ", this.currentBuildStep);
     // On recupere
@@ -32,11 +33,10 @@ export default {
                 this.currentBuildStep++;
                 this.runStep(steps, state);
               }, 500);
-              console.log(" CreateDomaine : ", resp);
             })
             .catch((resp) => {
               step.status = "error";
-              console.log(" error : ", resp);
+              this.runErrorsMessages(resp);
             });
           break;
         case "register_domaine":
@@ -58,27 +58,36 @@ export default {
             })
             .catch((resp) => {
               step.status = "error";
-              console.log("error : ", resp);
+              this.runErrorsMessages(resp);
             });
           break;
         case "create_content":
           step.status = "run";
-
-          this.CreateOrtherPages().then(() => {
-            this.CreateContent()
-              .then((resp) => {
-                this.homePageContent = resp.data;
+          this.CreateContent()
+            .then((resp) => {
+              this.homePageContent = resp.data;
+              var passNext = () => {
                 setTimeout(() => {
                   step.status = "ok";
                   this.currentBuildStep++;
                   this.runStep(steps, state);
                 }, 500);
-              })
-              .catch((resp) => {
-                step.status = "error";
-                console.log("error : ", resp);
-              });
-          });
+              };
+              // On patiente que les autres pages soit ok.
+              this.CreateOrtherPages()
+                .then(() => {
+                  passNext();
+                })
+                .catch(() => {
+                  // la creation des pages n'est pas un processus blocant, donc on continue meme en cas d'echac.
+                  passNext();
+                });
+            })
+            .catch((resp) => {
+              step.status = "error";
+              this.runErrorsMessages(resp);
+            });
+
           break;
         case "create_theme":
           step.status = "run";
@@ -92,22 +101,33 @@ export default {
             })
             .catch((resp) => {
               step.status = "error";
-              console.log("error : ", resp);
+              this.runErrorsMessages(resp);
             });
           break;
         case "layout_header":
           step.status = "run";
           if (this.domainRegister.id) {
-            this.createBlockContentHeader(state).then((resp) => {
-              //
-              this.addEntityToBlock(resp.data, "top_header").then(() => {
-                setTimeout(() => {
-                  step.status = "ok";
-                  this.currentBuildStep++;
-                  this.runStep(steps, state);
-                }, 500);
+            this.createBlockContentHeader(state)
+              .then((resp) => {
+                var passNext = () => {
+                  setTimeout(() => {
+                    step.status = "ok";
+                    this.currentBuildStep++;
+                    this.runStep(steps, state);
+                  }, 500);
+                };
+                this.addEntityToBlock(resp.data, "top_header")
+                  .then(() => {
+                    passNext();
+                  })
+                  .catch(() => {
+                    passNext();
+                  });
+              })
+              .catch((resp) => {
+                step.status = "error";
+                this.runErrorsMessages(resp);
               });
-            });
           } else {
             step.status = "error";
             this.currentBuildStep++;
@@ -117,15 +137,27 @@ export default {
         case "layout_footer":
           step.status = "run";
           if (this.domainRegister.id) {
-            this.createBlockContentFooter(state).then((resp) => {
-              this.addEntityToBlock(resp.data, "footer").then(() => {
-                setTimeout(() => {
-                  step.status = "ok";
-                  this.currentBuildStep++;
-                  this.runStep(steps, state);
-                }, 500);
+            this.createBlockContentFooter(state)
+              .then((resp) => {
+                var passNext = () => {
+                  setTimeout(() => {
+                    step.status = "ok";
+                    this.currentBuildStep++;
+                    this.runStep(steps, state);
+                  }, 500);
+                };
+                this.addEntityToBlock(resp.data, "footer")
+                  .then(() => {
+                    passNext();
+                  })
+                  .catch(() => {
+                    passNext();
+                  });
+              })
+              .catch((resp) => {
+                step.status = "error";
+                this.runErrorsMessages(resp);
               });
-            });
           } else {
             step.status = "error";
             this.currentBuildStep++;
@@ -135,13 +167,20 @@ export default {
         case "generate_style":
           step.status = "run";
           if (this.domainRegister.id) {
-            this.generateStyleTheme().then(() => {
+            var passNext = () => {
               setTimeout(() => {
                 step.status = "ok";
                 this.currentBuildStep++;
                 this.runStep(steps, state);
               }, 500);
-            });
+            };
+            this.generateStyleTheme()
+              .then(() => {
+                passNext();
+              })
+              .catch(() => {
+                passNext();
+              });
           } else {
             step.status = "error";
             this.currentBuildStep++;
@@ -149,16 +188,23 @@ export default {
           }
           break;
         default:
-          console.log("pre active finish");
-          store.commit("ACTIVE_FINISH");
+          // on ne devrait pas arrivé ici.
+          this.messages.warnings.push(
+            " Cette etape n'est pas definit : " + step.step
+          );
+          step.status = "ok";
+          this.currentBuildStep++;
+          this.runStep(steps, state);
           break;
       }
+    // Execution terminée.
     else {
-      console.log("pre active finish");
       store.commit("ACTIVE_FINISH");
+      store.commit("CLEAN_LOCALSTORAGE");
+      this.runWarningsMessages();
     }
   },
-  // Dans cette etape, on cree l'entité "donnee_internet_entity", l'entite pour OVH.
+  // Dans cette etape, on cree les entités "donnee_internet_entity" et "domain_ovh_entity".
   CreateDomaine(entity) {
     return this.bPost(
       "/vuejs-entity/entity/save/donnee_internet_entity",
@@ -167,29 +213,32 @@ export default {
   },
   // On enregistre le domaine sur OVH et on l'enregistre egalement comme multidomaine sur drupal.
   RegisterDomaine() {
-    if (
-      this.donneeInternetEntity.domain_ovh_entity &&
-      this.donneeInternetEntity.domain_ovh_entity[0].target_id
-    ) {
-      // Save domaine on OVH.
-      this.bPost(
-        "/ovh-api-rest/create-domaine/" +
-          this.donneeInternetEntity.domain_ovh_entity[0].target_id
-      )
-        .then((resp) => {
-          console.log(" Domaine enregistrer sur OVH : ", resp);
-        })
-        .catch((resp) => {
-          console.log(" ECHEC Domaine save sur OVH : ", resp);
+    return new Promise((resolv, reject) => {
+      if (
+        this.donneeInternetEntity.domain_ovh_entity &&
+        this.donneeInternetEntity.domain_ovh_entity[0] &&
+        this.donneeInternetEntity.domain_ovh_entity[0].target_id
+      ) {
+        // Save domaine on OVH.
+        this.bPost(
+          "/ovh-api-rest/create-domaine/" +
+            this.donneeInternetEntity.domain_ovh_entity[0].target_id
+        ).catch(() => {
+          this.messages.warnings.push(
+            " Votre domaine n'a pas pu etre generer "
+          );
         });
-      // Save domaine on drupal
-      return this.bPost(
-        "/vuejs-entity/domaine/add/" +
-          this.donneeInternetEntity.domain_ovh_entity[0].target_id
-      );
-    } else {
-      throw new Error(" Le nom de domaine n'a pas pu etre creer ");
-    }
+        // Save domaine on drupal ( id dans l'entité domain ) et met à jour l'entité "domain_ovh_entity" avec le id de domain.
+        resolv(
+          this.bPost(
+            "/vuejs-entity/domaine/add/" +
+              this.donneeInternetEntity.domain_ovh_entity[0].target_id
+          )
+        );
+      } else {
+        reject(" Le nom de domaine n'a pas pu etre creer ");
+      }
+    });
   },
   // On va cree la page d'accueil en function de l'identifiant present dans l'url.
   CreateContent() {
@@ -198,7 +247,7 @@ export default {
       this.donneeInternetEntity.name[0] &&
       this.donneeInternetEntity.name[0].value
         ? "Bienvenue chez " + this.donneeInternetEntity.name[0].value
-        : "Theme generer";
+        : "Theme generé";
     const values = {
       name: [{ value: title }],
       field_domain_access: [{ target_id: this.domainRegister.id }],
@@ -223,12 +272,13 @@ export default {
             const id = this.donneeInternetEntity.pages[i]
               ? this.donneeInternetEntity.pages[i].value
               : null;
+            const title = options[id] ? options[id] : "page generate";
             const values = {
               field_domain_access: [{ target_id: this.domainRegister.id }],
               field_domain_source: [{ target_id: this.domainRegister.id }],
               is_default_theme: [{ value: false }],
               is_home_page: [{ value: false }],
-              name: [{ value: options[id] ? options[id] : "page generate" }],
+              name: [{ value: title }],
             };
             if (id) {
               this.bPost("/vuejs-entity/entity/generate-page-web/" + id, values)
@@ -238,6 +288,11 @@ export default {
                   resolv(loop(id));
                 })
                 .catch(() => {
+                  this.messages.warnings.push(
+                    " Erreur rencontrée lors de la creation de cette page : <b>" +
+                      title +
+                      "</b> vous pourriez la re-creer plus tard. "
+                  );
                   setTimeout(() => {
                     if (essaie == 1) loop(i, 2);
                     else {
@@ -301,9 +356,17 @@ export default {
         .then((resp) => {
           if (resp.data.block_content) {
             resolv(this.addEntityToBlock(resp.data.block_content, "header"));
-          } else reject();
+          } else {
+            this.messages.warnings.push(
+              " Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. "
+            );
+            reject();
+          }
         })
         .catch(() => {
+          this.messages.warnings.push(
+            " Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. "
+          );
           reject();
         });
     });
@@ -382,10 +445,6 @@ export default {
       }
       // Applis colors
       this.ApplieColor(values).then((resp) => {
-        console.log(" Value : ", values);
-        console.log(" Value : ", resp);
-        // eslint-disable-next-line
-        // debugger;
         resolv(
           this.bPost("/vuejs-entity/entity/save/config_theme_entity", resp)
         );
@@ -399,30 +458,34 @@ export default {
    * @returns
    */
   createBlockContentHeader(state) {
-    return new Promise((resolv) => {
+    return new Promise((resolv, reject) => {
       state.storeFormRenderHeader.model.field_domain_access = [
         { target_id: this.domainRegister.id },
       ];
       state.storeFormRenderHeader.model.field_domain_source = [
         { target_id: this.domainRegister.id },
       ];
-      //pas necesssaire
+      // Pas necesssaire
       this.addDefaultBlockInRegion();
-      this.CreateMenus().then(() => {
-        resolv(
-          this.bPost(
-            "/vuejs-entity/entity/add-paragrph-in-entity/block_content/header",
-            {
-              paragraph: state.storeFormRenderHeader.model,
-              entity: {
-                info: [{ value: this.domainRegister.id + " : header" }],
-                field_domain_access: [{ target_id: this.domainRegister.id }],
-                field_domain_source: [{ target_id: this.domainRegister.id }],
-              },
-            }
-          )
-        );
-      });
+      this.CreateMenus()
+        .then(() => {
+          resolv(
+            this.bPost(
+              "/vuejs-entity/entity/add-paragrph-in-entity/block_content/header",
+              {
+                paragraph: state.storeFormRenderHeader.model,
+                entity: {
+                  info: [{ value: " Entete " }],
+                  field_domain_access: [{ target_id: this.domainRegister.id }],
+                  field_domain_source: [{ target_id: this.domainRegister.id }],
+                },
+              }
+            )
+          );
+        })
+        .catch(() => {
+          reject();
+        });
     });
   },
   /**
@@ -464,6 +527,9 @@ export default {
         };
         resolv(this.bPost("/vuejs-entity/entity/add-block-in-region", values));
       } else {
+        this.messages.warnings.push(
+          " Impossible d'ajouter le bloc, region : " + region
+        );
         reject();
       }
     });
@@ -481,7 +547,7 @@ export default {
       {
         paragraph: state.storeFormRenderFooter.model,
         entity: {
-          info: [{ value: this.domainRegister.id + " : footer " }],
+          info: [{ value: " Pied de page " }],
           field_domain_access: [{ target_id: this.domainRegister.id }],
           field_domain_source: [{ target_id: this.domainRegister.id }],
         },
@@ -490,16 +556,21 @@ export default {
   },
 
   generateStyleTheme() {
-    return new Promise((resolv) => {
+    return new Promise((resolv, reject) => {
       this.bGet(
         "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id
-      ).then(() => {
-        resolv(
-          this.bGet(
-            "/generate-style-theme/update-style-theme/" + this.domainRegister.id
-          )
-        );
-      });
+      )
+        .then(() => {
+          resolv(
+            this.bGet(
+              "/generate-style-theme/update-style-theme/" +
+                this.domainRegister.id
+            )
+          );
+        })
+        .catch(() => {
+          reject();
+        });
     });
   },
   /**
@@ -637,7 +708,7 @@ export default {
   /**
    * Retorune les id/Label.
    * L'id representant l'identifiant de la page à dupliquer.
-   * @deprecated
+   * //@deprecated
    */
   getLabelPages() {
     const options = {};
@@ -660,15 +731,26 @@ export default {
       return options;
     }
   },
+  /**
+   *
+   * @param {*} resp
+   */
+  runErrorsMessages(resp) {
+    this.messages.errors.push(
+      "<h3> Oups! Un problème est survenu. Veuillez réessayer </h3>"
+    );
+    if (typeof resp === "string" || resp instanceof String) {
+      this.messages.errors.push(resp);
+    }
+    store.commit("SET_ERROR_MESSAGES", this.messages.errors);
+    store.commit("CLEAN_LOCALSTORAGE");
+    this.runWarningsMessages();
+  },
+  /**
+   * -
+   */
+  runWarningsMessages() {
+    if (this.messages.warnings.length)
+      store.commit("SET_WARNING_MESSAGES", this.messages.warnings);
+  },
 };
-
-// ^ array:7 [▼
-//   "edit-config" => "domain.config.v2lesroisdelareno_kksa.system.site"
-//   "name" => "Les rois de la réno ........."
-//   "slogan" => "Un devis travaux en ligne dès que vous en avez besoin..."
-//   "mail" => "contact@lesroisdelareno.fr"
-//   "page.front" => "/node/1682"
-//   "page.403" => ""
-//   "page.404" => ""
-// ]
-//http://dimmat.lesroisdelareno.fr

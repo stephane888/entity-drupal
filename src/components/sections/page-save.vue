@@ -1,9 +1,32 @@
 <template>
   <div class="last-stepe">
     <label> Creer votre site maintenant !!! </label>
+
     <p class="step-donneesite--label">
       <span v-html="strings.page_save_1"></span>
     </p>
+    <div v-if="errorMessages.length" class="content-save-text mx-auto mt-5">
+      <b-alert
+        show
+        dismissible
+        variant="danger"
+        v-for="(msg, i) in errorMessages"
+        :key="i"
+      >
+        <div v-html="msg"></div>
+      </b-alert>
+    </div>
+    <div v-if="warningMessages.length" class="content-save-text mx-auto mt-5">
+      <b-alert
+        show
+        dismissible
+        variant="warning"
+        v-for="(msg, i) in warningMessages"
+        :key="i"
+      >
+        <div v-html="msg"></div>
+      </b-alert>
+    </div>
     <div class="text-left mx-auto content-save-text" v-if="creation_running">
       <ul class="puce-step-vertical step-build">
         <li
@@ -76,7 +99,22 @@ export default {
       finish_status: (state) => state.finish_status,
       new_hostname: (state) => state.new_hostname,
       strings: (state) => state.strings,
+      messages: (state) => state.messages,
     }),
+    warningMessages() {
+      if (this.messages.warnings && this.messages.warnings.length) {
+        return this.messages.warnings;
+      } else {
+        return [];
+      }
+    },
+    errorMessages() {
+      if (this.messages.errors && this.messages.errors.length) {
+        return this.messages.errors;
+      } else {
+        return [];
+      }
+    },
   },
   methods: {
     open_new_site() {
