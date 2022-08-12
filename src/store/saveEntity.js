@@ -43,6 +43,15 @@ export default {
           step.status = "run";
           this.RegisterDomaine()
             .then((resp) => {
+              // On lance la creation sur OVH, apres cette etape.(car les deux etapes modifie la meme entité)
+              this.bPost(
+                "/ovh-api-rest/create-domaine/" +
+                  this.donneeInternetEntity.domain_ovh_entity[0].target_id
+              ).catch(() => {
+                this.messages.warnings.push(
+                  " Votre domaine n'a pas pu etre generer "
+                );
+              });
               setTimeout(() => {
                 step.status = "ok";
                 this.currentBuildStep++;
@@ -219,15 +228,6 @@ export default {
         this.donneeInternetEntity.domain_ovh_entity[0] &&
         this.donneeInternetEntity.domain_ovh_entity[0].target_id
       ) {
-        // Save domaine on OVH.
-        this.bPost(
-          "/ovh-api-rest/create-domaine/" +
-            this.donneeInternetEntity.domain_ovh_entity[0].target_id
-        ).catch(() => {
-          this.messages.warnings.push(
-            " Votre domaine n'a pas pu etre generer "
-          );
-        });
         // Save domaine on drupal ( id dans l'entité domain ) et met à jour l'entité "domain_ovh_entity" avec le id de domain.
         resolv(
           this.bPost(
@@ -557,19 +557,32 @@ export default {
 
   generateStyleTheme() {
     return new Promise((resolv, reject) => {
+      const idHome = window.location.pathname.split("/").pop();
       this.bGet(
-        "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id
+        "/generate_style_theme/set_default_style/" +
+          idHome +
+          "/" +
+          this.domainRegister.id
       )
         .then(() => {
-          resolv(
-            this.bGet(
-              "/generate-style-theme/update-style-theme/" +
-                this.domainRegister.id
-            )
-          );
+          this.bGet(
+            "/layoutgenentitystyles/manuel/api-generate/" +
+              this.domainRegister.id
+          )
+            .then(() => {
+              resolv(
+                this.bGet(
+                  "/generate-style-theme/update-style-theme/" +
+                    this.domainRegister.id
+                )
+              );
+            })
+            .catch(() => {
+              reject();
+            });
         })
-        .catch(() => {
-          reject();
+        .catch((e) => {
+          reject(e);
         });
     });
   },

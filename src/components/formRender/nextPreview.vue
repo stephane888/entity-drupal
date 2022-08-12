@@ -90,6 +90,7 @@ export default {
   methods: {
     nextStep() {
       if (this.validationStep()) {
+        this.scrollUp();
         this.$store.commit("renderByStep/nextStep");
         this.$router.push({ path: `/form-render/${this.current_step}` });
       }
@@ -117,7 +118,15 @@ export default {
             this.$router.push({ path: `/form-render/${id}` });
           });
         }
+        this.scrollUp();
       }
+    },
+    scrollUp() {
+      window.scroll({
+        top: 0,
+        left: 0,
+        behavior: "smooth",
+      });
     },
     validationStep() {
       if (this.validation_form.valid) {

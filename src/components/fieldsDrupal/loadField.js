@@ -4,7 +4,7 @@ import drupalLink from "./drupal-link.vue";
 import drupalColor from "./drupal-color.vue";
 import drupalBoolean from "./drupal-boolean.vue";
 import drupalListString from "./drupal-list-string.vue";
-import drupalTextLong from "./html-render.vue";
+import drupalTextLong from "./textarea-ckeditor.vue";
 import htmlRender from "./html-render.vue";
 import drupalFile from "./drupal-file.vue";
 
@@ -13,7 +13,6 @@ export default {
   getField(field) {
     var key = field.type;
     if (key == "list_string" && field.cardinality == 1) key = "boolean";
-    console.log(key);
     var template;
     switch (key) {
       case "string":

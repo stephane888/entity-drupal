@@ -9,7 +9,7 @@ import sectionRegister from "../sections/page-register.vue";
 import sectionSave from "../sections/page-save.vue";
 import router from "../../router";
 import store from "../../store/index";
-// console.log("config store : ", config);
+
 export default {
   namespaced: true,
   state: () => ({
@@ -141,7 +141,7 @@ export default {
       ar.forEach((item) => {
         if (ar.length > n_ar.length + 1) n_ar.push(item);
       });
-      console.log("n_ar : ", n_ar);
+
       state.valid_steppers = n_ar;
     },
     // SET_VALID_STEPPERS(state, payload) {
@@ -153,7 +153,7 @@ export default {
     // On charge les données du formulaire.
     loadForm({ commit, state }) {
       commit("ACTIVE_RUNNING");
-      console.log(" loadForm config ", config);
+
       const param = {
         homepage: window.location.pathname.split("/").pop(),
       };
@@ -167,7 +167,7 @@ export default {
             //on recupere la valeur hash
             const urlParams = new URLSearchParams(window.location.search);
             const hash = urlParams.get("hash");
-            console.log("hash", hash);
+
             //on verifie si on a des données en cache.
             if (
               localStorage.getItem("app.model") &&
@@ -214,7 +214,7 @@ export default {
     // Contient les champs d'une etape.
     stepFields: (state) => {
       const fields = [];
-      //console.log(" Getters.fields :: ", state, " \n store : ", store.state);
+
       const step = state.steppers[state.current_step];
       var save_step = true;
       // validation de l'etape:

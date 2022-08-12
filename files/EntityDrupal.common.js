@@ -30364,7 +30364,6 @@ var basicRequest = {
 
     return new Promise(function (resolv, reject) {
       if (_this.languageId !== "" && _this.languageId !== undefined && _this.languageId !== null) url = "/" + _this.languageId + url;
-      console.log(" LanguageId : ", _this.languageId);
       var urlFinal = url.includes("://") ? url : _this.getBaseUrl() + url;
       InstAxios.post(urlFinal, datas, configs).then(function (reponse) {
         resolv({
@@ -30387,7 +30386,6 @@ var basicRequest = {
 
     return new Promise(function (resolv, reject) {
       var urlFinal = url.includes("://") ? url : _this2.getBaseUrl() + url;
-      console.log("config", datas, configs);
       InstAxios.delete(urlFinal, configs, datas).then(function (reponse) {
         resolv({
           status: true,
@@ -30410,7 +30408,6 @@ var basicRequest = {
     return new Promise(function (resolv, reject) {
       if (_this3.languageId !== "" && _this3.languageId !== undefined && _this3.languageId !== null) url = "/" + _this3.languageId + url;
       var urlFinal = url.includes("://") ? url : _this3.getBaseUrl() + url;
-      console.log(" get : ", url);
       InstAxios.get(urlFinal, configs).then(function (reponse) {
         resolv({
           status: true,
@@ -30438,7 +30435,6 @@ var basicRequest = {
     return new Promise(function (resolv, reject) {
       _this4.getBase64(file).then(function (fileEncode) {
         var headers = new Headers();
-        console.log("headers : ", headers);
         var fileCompose = file.name.split(".");
         var myInit = {
           method: "POST",
@@ -47744,7 +47740,7 @@ function _typeof(obj) {
 /******/ 		// This function allow to reference async chunks
 /******/ 		__webpack_require__.miniCssF = function(chunkId) {
 /******/ 			// return url for filenames based on template
-/******/ 			return "css/" + chunkId + "." + {"434":"342e5091","563":"a576b81d","577":"40693ac0"}[chunkId] + ".css";
+/******/ 			return "css/" + chunkId + "." + {"434":"342e5091","493":"40693ac0","563":"a576b81d"}[chunkId] + ".css";
 /******/ 		};
 /******/ 	}();
 /******/ 	
@@ -47893,7 +47889,7 @@ function _typeof(obj) {
 /******/ 		};
 /******/ 		
 /******/ 		__webpack_require__.f.miniCss = function(chunkId, promises) {
-/******/ 			var cssChunks = {"434":1,"563":1,"577":1};
+/******/ 			var cssChunks = {"434":1,"493":1,"563":1};
 /******/ 			if(installedCssChunks[chunkId]) promises.push(installedCssChunks[chunkId]);
 /******/ 			else if(installedCssChunks[chunkId] !== 0 && cssChunks[chunkId]) {
 /******/ 				promises.push(installedCssChunks[chunkId] = loadStylesheet(chunkId).then(function() {
@@ -93121,7 +93117,7 @@ var TheContainer = function TheContainer() {
 };
 
 var formRender = function formRender() {
-  return __webpack_require__.e(/* import() */ 577).then(__webpack_require__.bind(__webpack_require__, 41577));
+  return __webpack_require__.e(/* import() */ 493).then(__webpack_require__.bind(__webpack_require__, 47493));
 };
 
 external_commonjs_vue_commonjs2_vue_root_Vue_default().use(vue_router_esm);
@@ -93222,6 +93218,11 @@ var dist = __webpack_require__(63489);
       case "register_domaine":
         step.status = "run";
         this.RegisterDomaine().then(function (resp) {
+          // On lance la creation sur OVH, apres cette etape.(car les deux etapes modifie la meme entité)
+          _this.bPost("/ovh-api-rest/create-domaine/" + _this.donneeInternetEntity.domain_ovh_entity[0].target_id).catch(function () {
+            _this.messages.warnings.push(" Votre domaine n'a pas pu etre generer ");
+          });
+
           setTimeout(function () {
             step.status = "ok";
             _this.currentBuildStep++;
@@ -93384,14 +93385,14 @@ var dist = __webpack_require__(63489);
         this.currentBuildStep++;
         this.runStep(steps, state);
         break;
-    } //execution terminée.
+    } // Execution terminée.
     else {
       store.commit("ACTIVE_FINISH");
       store.commit("CLEAN_LOCALSTORAGE");
       this.runWarningsMessages();
     }
   },
-  // Dans cette etape, on cree l'entité "donnee_internet_entity", l'entite pour OVH.
+  // Dans cette etape, on cree les entités "donnee_internet_entity" et "domain_ovh_entity".
   CreateDomaine: function CreateDomaine(entity) {
     return this.bPost("/vuejs-entity/entity/save/donnee_internet_entity", entity);
   },
@@ -93401,12 +93402,7 @@ var dist = __webpack_require__(63489);
 
     return new Promise(function (resolv, reject) {
       if (_this2.donneeInternetEntity.domain_ovh_entity && _this2.donneeInternetEntity.domain_ovh_entity[0] && _this2.donneeInternetEntity.domain_ovh_entity[0].target_id) {
-        // Save domaine on OVH.
-        _this2.bPost("/ovh-api-rest/create-domaine/" + _this2.donneeInternetEntity.domain_ovh_entity[0].target_id).catch(function () {
-          _this2.messages.warnings.push(" Votre domaine n'a pas pu etre generer ");
-        }); // Save domaine on drupal
-
-
+        // Save domaine on drupal ( id dans l'entité domain ) et met à jour l'entité "domain_ovh_entity" avec le id de domain.
         resolv(_this2.bPost("/vuejs-entity/domaine/add/" + _this2.donneeInternetEntity.domain_ovh_entity[0].target_id));
       } else {
         reject(" Le nom de domaine n'a pas pu etre creer ");
@@ -93745,10 +93741,16 @@ var dist = __webpack_require__(63489);
     var _this8 = this;
 
     return new Promise(function (resolv, reject) {
-      _this8.bGet("/layoutgenentitystyles/manuel/api-generate/" + _this8.domainRegister.id).then(function () {
-        resolv(_this8.bGet("/generate-style-theme/update-style-theme/" + _this8.domainRegister.id));
-      }).catch(function () {
-        reject();
+      var idHome = window.location.pathname.split("/").pop();
+
+      _this8.bGet("/generate_style_theme/set_default_style/" + idHome + "/" + _this8.domainRegister.id).then(function () {
+        _this8.bGet("/layoutgenentitystyles/manuel/api-generate/" + _this8.domainRegister.id).then(function () {
+          resolv(_this8.bGet("/generate-style-theme/update-style-theme/" + _this8.domainRegister.id));
+        }).catch(function () {
+          reject();
+        });
+      }).catch(function (e) {
+        reject(e);
       });
     });
   },
@@ -94007,7 +94009,6 @@ var web_url_search_params = __webpack_require__(41637);
 ;// CONCATENATED MODULE: ./src/components/formRender/config.js
 
 
-console.log("config Render : ", rootConfig/* default */.Z);
 /* harmony default export */ var config = ((0,objectSpread2/* default */.Z)({}, rootConfig/* default */.Z));
 ;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/fieldsDrupal/drupal-string.vue?vue&type=template&id=01af0c2a&
 var drupal_stringvue_type_template_id_01af0c2a_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{class:_vm.class_css},[_c('ValidationProvider',{attrs:{"name":_vm.field.name,"rules":_vm.getRules()},scopedSlots:_vm._u([{key:"default",fn:function(v){return [_c('b-form-group',{attrs:{"label":_vm.field.label,"description":_vm.field.description}},[_c('div',{staticClass:"field-item-value"},[_c('b-form-input',{attrs:{"placeholder":_vm.field.placeholder,"state":_vm.getValidationState(v),"name":_vm.field.name,"debounce":"500"},on:{"input":_vm.input},model:{value:(_vm.input_value),callback:function ($$v) {_vm.input_value=$$v},expression:"input_value"}})],1),(v.errors)?_c('div',{staticClass:"text-danger my-2"},_vm._l((v.errors),function(error,ii){return _c('small',{key:ii,staticClass:"d-block"},[_vm._v(" "+_vm._s(error)+" ")])}),0):_vm._e()])]}}])})],1)}
@@ -95701,6 +95702,222 @@ var drupal_list_string_component = (0,componentNormalizer/* default */.Z)(
 )
 
 /* harmony default export */ var drupal_list_string = (drupal_list_string_component.exports);
+;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/fieldsDrupal/textarea-ckeditor.vue?vue&type=template&id=baf08230&
+var textarea_ckeditorvue_type_template_id_baf08230_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"mb-4",class:_vm.class_css},[_c('ValidationProvider',{staticClass:"form-group",attrs:{"name":_vm.field.label,"rules":{ required: true }},scopedSlots:_vm._u([{key:"default",fn:function(v){return [_c('legend',{domProps:{"innerHTML":_vm._s(_vm.field.label)}}),_c('ckeditor',{attrs:{"config":_vm.editorConfig},on:{"input":_vm.input,"namespaceloaded":_vm.onNamespaceLoaded},model:{value:(_vm.editorData),callback:function ($$v) {_vm.editorData=$$v},expression:"editorData"}}),(v.errors)?_c('div',{staticClass:"text-danger my-2"},_vm._l((v.errors),function(error,ii){return _c('small',{key:ii,staticClass:"d-block"},[_vm._v(" "+_vm._s(error)+" ")])}),0):_vm._e()]}}])})],1)}
+var textarea_ckeditorvue_type_template_id_baf08230_staticRenderFns = []
+
+
+;// CONCATENATED MODULE: ./node_modules/thread-loader/dist/cjs.js!./node_modules/babel-loader/lib/index.js??clonedRuleSet-40[0].rules[0].use[1]!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/fieldsDrupal/textarea-ckeditor.vue?vue&type=script&lang=js&
+
+
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+/* harmony default export */ var textarea_ckeditorvue_type_script_lang_js_ = ({
+  name: "drupal-string",
+  props: {
+    class_css: {
+      type: [Array]
+    },
+    field: {
+      type: Object,
+      required: true
+    },
+    model: {
+      type: [Object, Array],
+      required: true
+    },
+    namespace_store: {
+      type: String,
+      required: true
+    }
+  },
+  components: {
+    ValidationProvider: vee_validate_esm/* ValidationProvider */.d_
+  },
+  data: function data() {
+    return {
+      editorData: "",
+      preEditorConfig: {
+        codeSnippet_theme: "monokai_sublime",
+        stylesSet: [],
+        contentsCss: "@import '" + loadField.getBaseUrl() + "/themes/contrib/wb_universe/node_modules/%40fortawesome/fontawesome-free/css/all.min.css'; @import 'http://wb-horizon.com/themes/custom/wb_horizon_com/css/vendor-style.css';",
+        on: {
+          instanceReady: function instanceReady(ev) {
+            ev.sender.dataProcessor.writer.setRules("p", {
+              indent: true,
+              breakBeforeOpen: true,
+              breakAfterOpen: false,
+              breakBeforeClose: true,
+              breakAfterClose: true
+            });
+            ev.sender.dataProcessor.writer.setRules("img", {
+              indent: true,
+              breakBeforeOpen: true,
+              breakAfterOpen: false,
+              breakBeforeClose: false,
+              breakAfterClose: false
+            });
+            ev.sender.dataProcessor.writer.setRules("h1", {
+              indent: true,
+              breakBeforeOpen: false,
+              breakAfterOpen: false,
+              breakBeforeClose: false,
+              breakAfterClose: false
+            });
+            ev.sender.dataProcessor.writer.setRules("h2", {
+              indent: true,
+              breakBeforeOpen: false,
+              breakAfterOpen: false,
+              breakBeforeClose: false,
+              breakAfterClose: false
+            });
+            ev.sender.dataProcessor.writer.setRules("h3", {
+              indent: true,
+              breakBeforeOpen: false,
+              breakAfterOpen: false,
+              breakBeforeClose: false,
+              breakAfterClose: false
+            });
+            ev.sender.dataProcessor.writer.setRules("h4", {
+              indent: true,
+              breakBeforeOpen: false,
+              breakAfterOpen: false,
+              breakBeforeClose: false,
+              breakAfterClose: false
+            });
+            ev.sender.dataProcessor.writer.setRules("h5", {
+              indent: true,
+              breakBeforeOpen: false,
+              breakAfterOpen: false,
+              breakBeforeClose: false,
+              breakAfterClose: false
+            });
+            ev.sender.dataProcessor.writer.setRules("h6", {
+              indent: true,
+              breakBeforeOpen: false,
+              breakAfterOpen: false,
+              breakBeforeClose: false,
+              breakAfterClose: false
+            });
+            ev.sender.dataProcessor.writer.setRules("div", {
+              indent: true,
+              breakBeforeOpen: true,
+              breakAfterOpen: true,
+              breakBeforeClose: true,
+              breakAfterClose: false
+            });
+          }
+        }
+      }
+    };
+  },
+  mounted: function mounted() {
+    this.editorData = this.getValue();
+  },
+  computed: {
+    editorConfig: function editorConfig() {
+      //,ckawesome, ckeditorfa
+      var extraPlugins = "codesnippet,print,format,font,colorbutton,justify,image,filebrowser,stylesheetparser";
+      return (0,objectSpread2/* default */.Z)({
+        extraPlugins: extraPlugins
+      }, this.preEditorConfig);
+    }
+  },
+  methods: {
+    getValidationState: function getValidationState(_ref) {
+      var dirty = _ref.dirty,
+          validated = _ref.validated,
+          _ref$valid = _ref.valid,
+          valid = _ref$valid === void 0 ? null : _ref$valid;
+      return (dirty || validated) && !valid ? valid : null;
+    },
+    getRules: function getRules() {
+      return loadField.getRules(this.field);
+    },
+    setValue: function setValue(vals) {
+      if (this.namespace_store) {
+        this.$store.dispatch(this.namespace_store, {
+          value: vals,
+          fieldName: this.field.name
+        });
+      } else this.$store.dispatch({
+        value: vals,
+        fieldName: this.field.name
+      });
+    },
+    getValue: function getValue() {
+      if (this.model[this.field.name] && this.model[this.field.name][0]) {
+        return this.model[this.field.name][0].value;
+      }
+    },
+    input: function input(v) {
+      var vals = [];
+      vals.push({
+        value: v,
+        format: "full_html"
+      });
+      this.setValue(vals);
+    },
+    onNamespaceLoaded: function onNamespaceLoaded(CKEDITOR) {
+      CKEDITOR.config.allowedContent = true; // CKEDITOR.config.contentsCss =
+      //   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css";
+
+      CKEDITOR.config.htmlEncodeOutput = false;
+      CKEDITOR.config.entities = false; // CKEDITOR.config.entities_processNumerical = 'force';
+
+      CKEDITOR.dtd.$removeEmpty.span = 0;
+      CKEDITOR.dtd.$removeEmpty.i = 0;
+      CKEDITOR.dtd.$removeEmpty.label = 0;
+    }
+  }
+});
+;// CONCATENATED MODULE: ./src/components/fieldsDrupal/textarea-ckeditor.vue?vue&type=script&lang=js&
+ /* harmony default export */ var fieldsDrupal_textarea_ckeditorvue_type_script_lang_js_ = (textarea_ckeditorvue_type_script_lang_js_); 
+;// CONCATENATED MODULE: ./src/components/fieldsDrupal/textarea-ckeditor.vue
+
+
+
+
+
+/* normalize component */
+;
+var textarea_ckeditor_component = (0,componentNormalizer/* default */.Z)(
+  fieldsDrupal_textarea_ckeditorvue_type_script_lang_js_,
+  textarea_ckeditorvue_type_template_id_baf08230_render,
+  textarea_ckeditorvue_type_template_id_baf08230_staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* harmony default export */ var textarea_ckeditor = (textarea_ckeditor_component.exports);
 ;// CONCATENATED MODULE: ./node_modules/@vue/vue-loader-v15/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/@vue/vue-loader-v15/lib/index.js??vue-loader-options!./src/components/fieldsDrupal/html-render.vue?vue&type=template&id=a9022ae0&
 var html_rendervue_type_template_id_a9022ae0_render = function () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{class:_vm.class_css},[_c('div',{domProps:{"innerHTML":_vm._s(_vm.field.content)}})])}
 var html_rendervue_type_template_id_a9022ae0_staticRenderFns = []
@@ -95971,7 +96188,6 @@ var drupal_file_component = (0,componentNormalizer/* default */.Z)(
   getField: function getField(field) {
     var key = field.type;
     if (key == "list_string" && field.cardinality == 1) key = "boolean";
-    console.log(key);
     var template;
 
     switch (key) {
@@ -96000,7 +96216,7 @@ var drupal_file_component = (0,componentNormalizer/* default */.Z)(
         break;
 
       case "text_long":
-        template = html_render;
+        template = textarea_ckeditor;
         break;
 
       case "image":
@@ -96520,7 +96736,6 @@ var page_save_component = (0,componentNormalizer/* default */.Z)(
 
 
 
- // console.log("config store : ", config);
 
 /* harmony default export */ var storeFields = ({
   namespaced: true,
@@ -96651,7 +96866,6 @@ var page_save_component = (0,componentNormalizer/* default */.Z)(
       ar.forEach(function (item) {
         if (ar.length > n_ar.length + 1) n_ar.push(item);
       });
-      console.log("n_ar : ", n_ar);
       state.valid_steppers = n_ar;
     } // SET_VALID_STEPPERS(state, payload) {
     //   state.valid_steppers = payload;
@@ -96665,7 +96879,6 @@ var page_save_component = (0,componentNormalizer/* default */.Z)(
       var commit = _ref.commit,
           state = _ref.state;
       commit("ACTIVE_RUNNING");
-      console.log(" loadForm config ", config);
       var param = {
         homepage: window.location.pathname.split("/").pop()
       };
@@ -96673,8 +96886,7 @@ var page_save_component = (0,componentNormalizer/* default */.Z)(
         if (resp.data) {
           //on recupere la valeur hash
           var urlParams = new URLSearchParams(window.location.search);
-          var hash = urlParams.get("hash");
-          console.log("hash", hash); //on verifie si on a des données en cache.
+          var hash = urlParams.get("hash"); //on verifie si on a des données en cache.
 
           if (localStorage.getItem("app.model") && hash == localStorage.getItem("app.hash")) {
             var model = JSON.parse(localStorage.getItem("app.model"));
@@ -96719,8 +96931,7 @@ var page_save_component = (0,componentNormalizer/* default */.Z)(
   getters: {
     // Contient les champs d'une etape.
     stepFields: function stepFields(state) {
-      var fields = []; //console.log(" Getters.fields :: ", state, " \n store : ", store.state);
-
+      var fields = [];
       var step = state.steppers[state.current_step];
       var save_step = true; // validation de l'etape:
 
@@ -96809,7 +97020,6 @@ var page_save_component = (0,componentNormalizer/* default */.Z)(
 ;// CONCATENATED MODULE: ./src/components/FormRenderHeader/config.js
 
 
-console.log("config Render : ", rootConfig/* default */.Z);
 /* harmony default export */ var FormRenderHeader_config = ((0,objectSpread2/* default */.Z)({}, rootConfig/* default */.Z));
 ;// CONCATENATED MODULE: ./src/components/FormRenderHeader/storeFormRenderHeader.js
 
@@ -96857,7 +97067,6 @@ console.log("config Render : ", rootConfig/* default */.Z);
 ;// CONCATENATED MODULE: ./src/components/FormRenderFooter/config.js
 
 
-console.log("config Render : ", rootConfig/* default */.Z);
 /* harmony default export */ var FormRenderFooter_config = ((0,objectSpread2/* default */.Z)({}, rootConfig/* default */.Z));
 ;// CONCATENATED MODULE: ./src/components/FormRenderFooter/storeFormRenderFooter.js
 
