@@ -13,9 +13,9 @@ export default {
   name: "the-container",
   mounted() {
     this.$store.dispatch("renderByStep/loadForm");
-    //this.$store.commit("storeLayoutFooter/loadLayout");
-    //this.$store.commit("storeLayout/loadLayout");
-    //load field block_content header
+    // this.$store.commit("storeLayoutFooter/loadLayout");
+    // this.$store.commit("storeLayout/loadLayout");
+    // load field block_content header
     this.$store.commit("storeFormRenderHeader/loadFields");
     this.$store.commit("storeFormRenderFooter/loadFields");
     this.$store.dispatch("loadStrings");

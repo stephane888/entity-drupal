@@ -15,7 +15,7 @@ export default {
   state: () => ({
     // Contient l'etape encours.
     current_step: 0,
-    // permet de terminer si une requette est en attente
+    // Permet de terminer si une requette est en attente
     running: false,
     // Contient les etapes et les champs de ces etapes.
     steppers: [
@@ -164,6 +164,7 @@ export default {
         )
         .then((resp) => {
           if (resp.data) {
+            commit("DISABLE_RUNNING");
             //on recupere la valeur hash
             const urlParams = new URLSearchParams(window.location.search);
             const hash = urlParams.get("hash");
@@ -189,11 +190,13 @@ export default {
                 );
               } else {
                 commit("SET_FORM", resp.data);
-                commit("DISABLE_RUNNING");
                 localStorage.setItem("app.hash", hash);
               }
             }
           }
+        })
+        .catch(() => {
+          commit("DISABLE_RUNNING");
         });
     },
     // Permet de mettre à jour un champs ...

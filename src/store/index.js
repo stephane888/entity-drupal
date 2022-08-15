@@ -12,13 +12,17 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    // Permet de suivre l'etat de creation du site.
+    /**
+     * Permet de suivre l'etat de creation du site.
+     * True, le site est encours de creation.
+     */
     creation_running: false,
     // Permet de determiner si la creation est terminé.
     finish_status: false,
     // Nouveau nom de domaine.
     new_hostname: null,
     // Les differences etapes du processus.
+
     build_steps: [
       {
         titre: "Creation de votre domaine",

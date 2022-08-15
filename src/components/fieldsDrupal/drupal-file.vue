@@ -108,6 +108,7 @@ export default {
         const vals = [];
         this.toUplode = [];
         config.postFile("/filesmanager/post", files).then((resp) => {
+          this.$store.commit("renderByStep/ACTIVE_RUNNING");
           reader.onload = (read) => {
             this.toUplode.push({
               file: files,
@@ -115,6 +116,9 @@ export default {
               error: 0,
               url: read.target.result,
             });
+            setTimeout(() => {
+              this.$store.commit("renderByStep/DISABLE_RUNNING");
+            }, 300);
           };
           reader.readAsDataURL(files);
           vals.push({ target_id: resp.id });

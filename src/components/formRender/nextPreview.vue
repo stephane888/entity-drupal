@@ -66,6 +66,7 @@ export default {
       finish_status: (state) => state.finish_status,
       valid_steppers: (state) => state.renderByStep.valid_steppers,
       strings: (state) => state.strings,
+      running: (state) => state.renderByStep.running,
     }),
     count_step() {
       return this.current_step + 1;
@@ -80,7 +81,10 @@ export default {
     disable_submit() {
       const step = this.steppers[this.current_step];
       if (step) {
-        if (step.templates && step.templates.includes("page_register"))
+        if (
+          (step.templates && step.templates.includes("page_register")) ||
+          this.running
+        )
           return true;
       }
       return false;

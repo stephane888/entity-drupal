@@ -43,6 +43,24 @@ export default {
       preEditorConfig: {
         codeSnippet_theme: "monokai_sublime",
         stylesSet: [],
+        toolbar: [
+          {
+            name: "document",
+            items: [
+              "Bold",
+              "Italic",
+              "-",
+              "Cut",
+              "Copy",
+              "Paste",
+              "PasteText",
+              "PasteFromWord",
+              "-",
+              "Undo",
+              "Redo",
+            ],
+          },
+        ],
         contentsCss:
           "@import '" +
           config.getBaseUrl() +
