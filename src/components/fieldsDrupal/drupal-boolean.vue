@@ -81,6 +81,7 @@ export default {
   },
   mounted() {
     this.getImage();
+    console.log("load image boolean");
   },
   watch: {
     /**

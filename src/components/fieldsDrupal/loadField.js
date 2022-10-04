@@ -14,6 +14,7 @@ export default {
     var key = field.type;
     if (key == "list_string" && field.cardinality == 1) key = "boolean";
     var template;
+    console.log(" key : ", key);
     switch (key) {
       case "string":
         template = drupalString;

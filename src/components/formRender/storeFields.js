@@ -20,6 +20,7 @@ export default {
     // Contient les etapes et les champs de ces etapes.
     steppers: [
       { keys: ["html_1"] },
+      // Doit etre compris entre [3-20]
       { keys: ["name"] },
       { keys: ["type_color_theme"] },
       {
@@ -159,7 +160,7 @@ export default {
       };
       return config
         .bPost(
-          "/vuejs-entity/form/donnee_internet_entity/default/bundle",
+          "/vuejs-entity/form/donnee_internet_entity/default/donnee_internet_entity",
           param
         )
         .then((resp) => {

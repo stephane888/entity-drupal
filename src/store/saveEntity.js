@@ -8,7 +8,14 @@ export default {
   currentBuildStep: 0,
   donneeInternetEntity: {},
   homePageContent: {},
+  /**
+   * entité domain
+   */
   domainRegister: {},
+  /**
+   * entité domain
+   */
+  domainOvhEntity: {},
   OrtherPages: [],
   messages: { errors: [], warnings: [] },
   runStep(steps, state) {
@@ -55,7 +62,10 @@ export default {
               setTimeout(() => {
                 step.status = "ok";
                 this.currentBuildStep++;
-                this.domainRegister = resp.data;
+                if (resp.data && resp.data.domain)
+                  this.domainRegister = resp.data.domain;
+                if (resp.data && resp.data.domain_ovh_entity)
+                  this.domainOvhEntity = resp.data.domain_ovh_entity;
                 if (this.domainRegister.hostname) {
                   store.commit("SET_HOSTNAME", {
                     domain: this.domainRegister.hostname,
@@ -228,7 +238,7 @@ export default {
         this.donneeInternetEntity.domain_ovh_entity[0] &&
         this.donneeInternetEntity.domain_ovh_entity[0].target_id
       ) {
-        // Save domaine on drupal ( id dans l'entité domain ) et met à jour l'entité "domain_ovh_entity" avec le id de domain.
+        // Cree l'entité domain s'il n'existe pas et recupere les entites domain et domain_ovh_entity.
         resolv(
           this.bPost(
             "/vuejs-entity/domaine/add/" +
@@ -318,11 +328,12 @@ export default {
    * Car les liens de pages ainsi generer devront etre utiliser comme lien.
    * @returns
    */
-  CreateMenus() {
+  CreateMenus(state) {
     return new Promise((resolv, reject) => {
-      // build menu :
+      // Build menu :
       const menu = {
-        id: limit(this.domainRegister.id + "_main", 30, ""),
+        //this.domainOvhEntity.sub_domain[0].value contient a-z0-9,
+        id: this.domainOvhEntity.sub_domain[0].value + "_main",
         label: this.domainRegister.id + ": menu principal",
         description: "Menu generé automatiquement",
       };
@@ -344,7 +355,7 @@ export default {
             ],
           });
       });
-      // contruit le menus et les items.
+      // Contruit le menus et les items.
       this.bPost("/vuejs-entity/entity/add-menu-items", {
         menu: menu,
         items: items,
@@ -352,10 +363,16 @@ export default {
           field_domain_access: this.domainRegister.id,
           field_domain_source: this.domainRegister.id,
         },
+        // block_content_type: "header_footer", // La construction doit etre statique car il ya un mappage de champs à faire.
       })
         .then((resp) => {
-          if (resp.data.block_content) {
-            resolv(this.addEntityToBlock(resp.data.block_content, "header"));
+          console.log("resp : ", resp);
+          if (resp.data.menu && resp.data.menu.id) {
+            // On met à jour le champs "field_reference_menu" au niveau de l'object du header
+            state.storeFormRenderHeader.model.field_reference_menu = [
+              { target_id: resp.data.menu.id },
+            ];
+            resolv();
           } else {
             this.messages.warnings.push(
               " Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. "
@@ -467,7 +484,7 @@ export default {
       ];
       // Pas necesssaire
       this.addDefaultBlockInRegion();
-      this.CreateMenus()
+      this.CreateMenus(state)
         .then(() => {
           resolv(
             this.bPost(

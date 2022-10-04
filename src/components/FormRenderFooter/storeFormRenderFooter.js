@@ -19,8 +19,9 @@ export default {
     // /vuejs-entity/form/paragraph/default/headers
     // /vuejs-entity/form/block_content/default/header
     loadFields(state) {
+      const idHome = window.location.pathname.split("/").pop();
       config
-        .post("/vuejs-entity/form/paragraph/default/footer")
+        .post("/vuejs-entity/form/paragraphs/" + idHome + "/footer")
         .then((resp) => {
           if (resp.data) {
             state.form = resp.data.form;
