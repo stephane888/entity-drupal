@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { loginRegister } from "drupal-vuejs";
+import loginRegister from "drupal-vuejs/src/App/users/user.js";
 import { mapState } from "vuex";
 import users from "../../users.js";
 export default {
@@ -21,9 +21,9 @@ export default {
     this.check_if_user_connected();
   },
   methods: {
-    ev_logingoogle(user) {
-      console.log(user);
-    },
+    // ev_logingoogle(user) {
+    //  // console.log(user);
+    // },
     check_if_user_connected() {
       document.addEventListener(
         "login_rx_vuejs__user_is_login",

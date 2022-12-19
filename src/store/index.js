@@ -21,8 +21,8 @@ export default new Vuex.Store({
     finish_status: false,
     // Nouveau nom de domaine.
     new_hostname: null,
-    // Les differences etapes du processus.
 
+    // Les differences etapes du processus.
     build_steps: [
       {
         titre: "Creation de votre domaine",

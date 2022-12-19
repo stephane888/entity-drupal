@@ -425,8 +425,7 @@ export default {
       system_main_block
     );
   },
-  // On cree le theme de maniere statique, mais il faudra le rendre dynamique.
-  // Il faudra aussi definir la page daccueil.
+  //
   async CreateTheme() {
     return new Promise((resolv) => {
       var values = {
@@ -492,7 +491,7 @@ export default {
               {
                 paragraph: state.storeFormRenderHeader.model,
                 entity: {
-                  info: [{ value: " Entete " }],
+                  info: [{ value: "Entete" }],
                   field_domain_access: [{ target_id: this.domainRegister.id }],
                   field_domain_source: [{ target_id: this.domainRegister.id }],
                 },
