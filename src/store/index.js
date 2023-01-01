@@ -67,8 +67,27 @@ export default new Vuex.Store({
     strings: {},
     //
     messages: { errors: [], warnings: [] },
+    //Array contenant les données a sauvegarder.
+    entityDuplicate: [],
   },
-  getters: {},
+  getters: {
+    numbersEntities: (state) => {
+      var number = 0;
+      const loopCount = (datas) => {
+        for (const i in datas) {
+          number++;
+          if (datas[i].entities) {
+            console.log("loopCount : ", datas[i].entities);
+            for (const j in datas[i].entities) {
+              loopCount(datas[i].entities[j]);
+            }
+          }
+        }
+      };
+      loopCount(state.entityDuplicate);
+      return number;
+    },
+  },
   mutations: {
     ACTIVE_CREATION(state) {
       state.creation_running = true;
@@ -101,6 +120,9 @@ export default new Vuex.Store({
       localStorage.removeItem("app.form");
       localStorage.removeItem("app.hash");
     },
+    SET_ENTITYDUPLICATE(state, payload) {
+      state.entityDuplicate = payload;
+    },
   },
   actions: {
     //
@@ -113,6 +135,43 @@ export default new Vuex.Store({
       commit("DISABLE_CREATION");
       saveEntity.currentBuildStep = 0;
     },
+    //
+    duplicateEntities({ commit }, payload) {
+      return new Promise((resolv, reject) => {
+        config
+          .bPost(
+            "/vuejs-entity/entity/generate-page-web/" + payload.id,
+            payload.content
+          )
+          .then((resp) => {
+            commit("SET_ENTITYDUPLICATE", resp.data);
+            resolv(resp.data);
+          })
+          .catch((er) => {
+            reject(er);
+          });
+      });
+    },
+    saveEntity({ commit }, payload) {
+      commit("ACTIVE_CREATION");
+      return new Promise((resolv, reject) => {
+        config
+          .bPost(
+            "/apivuejs/save-entity/" + payload.entity_type_id,
+            payload.value
+          )
+          .then((resp) => {
+            console.log("resp : ", resp);
+            setTimeout(() => {
+              console.log(" payload : ", payload);
+              resolv(resp);
+            }, 3000);
+          })
+          .catch((er) => {
+            reject(er);
+          });
+      });
+    },
     // Load strings texte
     loadStrings({ commit }) {
       return config.get("/vuejs-entity/default-string").then((resp) => {
@@ -124,8 +183,8 @@ export default new Vuex.Store({
   },
   modules: {
     renderByStep: renderByStep,
-    //storeLayout: storeLayout,
-    //storeLayoutFooter: storeLayoutFooter,
+    // storeLayout: storeLayout,
+    // storeLayoutFooter: storeLayoutFooter,
     storeFormRenderHeader: storeFormRenderHeader,
     storeFormRenderFooter: storeFormRenderFooter,
   },

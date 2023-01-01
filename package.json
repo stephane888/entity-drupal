@@ -6,7 +6,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "Dev": "vue-cli-service build --mode development  --dest files --target lib --name EntityDrupal 'src/prod.js'",
+    "Dev": "vue-cli-service build --watch --mode development  --dest files --target lib --name EntityDrupal 'src/prod.js'",
     "Prod": "vue-cli-service build --mode production  --dest files --target lib --name EntityDrupal 'src/prod.js'"
   },
   "dependencies": {

@@ -782,4 +782,19 @@ export default {
     if (this.messages.warnings.length)
       store.commit("SET_WARNING_MESSAGES", this.messages.warnings);
   },
+  /**
+   * On va sauvegarder les données en commencant par l'entite la plus basse (i.e ne contenant pas de sous entites ).
+   * @param {*} state
+   */
+  // prepareSaveEntities(state) {
+  //   const loopEntity = (datas) => {
+  //     for (const i in datas) {
+  //       // s'il ne contient pas de sous entité.
+  //       if (datas[i].entities && datas[i].entities.length === 0) {
+  //         //
+  //       }
+  //     }
+  //   };
+  //   loopEntity(state.entityDuplicate);
+  // },
 };
