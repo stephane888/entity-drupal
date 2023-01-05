@@ -36,8 +36,19 @@
             item.status == 'ok' ? 'active' : '',
             item.status == 'error' ? 'text-danger' : '',
           ]"
+          class="d-flex align-items-baseline"
         >
-          {{ item.titre }}
+          <div>
+            <div>{{ item.titre }}</div>
+            <small
+              v-for="(incresing, i) in item.entities"
+              :key="i"
+              class="d-block"
+            >
+              {{ incresing.creates }}/{{ incresing.numbers }} Contenu(s) de la
+              page : {{ incresing.page }}.
+            </small>
+          </div>
           <b-icon
             icon="three-dots"
             font-scale="1.3"
@@ -56,9 +67,9 @@
         </li>
       </ul>
       <div v-if="finish_status" class="my-5 h3 text-primary d-none">
-        Votre site serra disponible d'ici 15 minutes
+        Votre site serra disponible d'ici 1 minute
         <small>
-          <i class="d-block"> (le temps de progagation des données DNS) </i>
+          <i class="d-block"> ( le temps de progagation des données DNS ) </i>
         </small>
       </div>
       <div class="action d-flex flex-column" v-if="finish_status">
@@ -82,6 +93,7 @@
         </a>
       </div>
     </div>
+    <pre class="text-left"> build_steps {{ build_steps }}  </pre>
   </div>
 </template>
 

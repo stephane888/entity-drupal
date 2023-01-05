@@ -13,7 +13,7 @@ export default {
   data() {
     return {
       payload: {
-        id: 139,
+        id: 139, //152, //139,
         content: {
           name: [
             {
@@ -49,13 +49,20 @@ export default {
   },
   methods: {
     duplicateEntities() {
-      this.$store.dispatch("duplicateEntities", this.payload).then(() => {
+      this.$store.dispatch("getMatriceEntities", this.payload).then(() => {
         this.prepareSaveEntities(this.$store.state);
       });
     },
     prepareSaveEntities(state) {
+      /**
+       * Permet de creer les sous contenus et return les target_ids.
+       * @param {Array} items
+       * @param {Integer} i
+       * @param {Array} values
+       */
       const loopItem = (items, i, values = []) => {
         return new Promise((resolv, reject) => {
+          console.log("loopItem : ", items);
           if (items[i]) {
             const item = items[i];
             if (items[i].entities) {
@@ -74,13 +81,18 @@ export default {
                     index: i,
                   })
                   .then((resp) => {
-                    items[i].entity = resp.data.json;
+                    //items[i].entity = resp.data.json;
+                    values.push({ target_id: resp.data.id });
                     i = i + 1;
                     if (i < items.length) {
-                      resolv(loopEntityPromise(items, i));
-                    } else resolv(items);
+                      // loopEntityPromise(items, i).then((resp) => {
+                      //   values.push({ target_id: resp.data.id });
+                      // });
+                      resolv(loopItem(items, i, values));
+                    } else resolv(values);
                   })
                   .catch((er) => {
+                    console.log(" catch : ", er);
                     reject(er);
                   });
               });
@@ -92,7 +104,7 @@ export default {
                   index: i,
                 })
                 .then((resp) => {
-                  values.push({ target_id: resp.data.id, index: i });
+                  values.push({ target_id: resp.data.id });
                   i = i + 1;
                   if (items.length <= i) {
                     resolv(loopItem(items, i, values));
@@ -101,6 +113,7 @@ export default {
                   }
                 })
                 .catch((er) => {
+                  console.log("catch : ", er);
                   reject(er);
                 });
             }
@@ -109,18 +122,24 @@ export default {
       };
       //
       /**
-       * On parcourt les champs.
-       * @param {Array} datas
+       * loopFieldEntity parcourt les entites enfants d'une entité parente, et a chaque passage MAJ l'entité parent.
+       *
+       * @param {Array} datas // tableau des entites enfants.
        * @param {String} fieldname // fieldname
-       * @return ids // les ids des entites pour le champs.
+       * @param {String} entity // entité parente
+       * @param {Array} keys // tableau des champs à parcourirt (permet de passer à l'etape suivante)
+       * @param {Integer} i   // l'etape encours (permet de passer à l'etape suivante)
+       * @return {Object} entity // l'entité parente MAJ.
        */
       const loopFieldEntity = (datas, fieldname, entity, keys, i) => {
         return new Promise((resolv) => {
+          console.log("loopFieldEntity : ", datas);
           // Si le champs contient des données,
-          // on parcourt chaqu'une des entrées.
+          // on parcourt chacune des entrées.
           if (datas[fieldname] && datas[fieldname].length > 0) {
             // Pour chaque champs, on cree les contenus et on recupere les ids.
             loopItem(datas[fieldname], 0).then((resp) => {
+              console.log("loopFieldEntity result of loopItem : ", resp);
               entity[fieldname] = resp;
               // on passe au champs suivant.
               i = i + 1;
@@ -133,12 +152,22 @@ export default {
           } else resolv(entity);
         });
       };
-      //
-      const loopEntityPromise = (datas, i = null) => {
+      /**
+       * Permet de cree l'entité parent, apres que tous les entitées enfants soient ok.
+       * il est appelle par tous les enfants possedant des enfants.
+       * loopEntityPromise recois un tableau contenant les entites qui doivent etre cree.
+       * il retourne un tableau de target_ids => [{target_id:...},{target_id:...}, ... ].
+       *
+       * @param {*} datas
+       * @param {*} i
+       * @return resp [{id:..., json:...}] // return un json avec une proprieté json et une autre id.
+       */
+      const loopEntityPromise = (datas, i = null, values = []) => {
         return new Promise((resolv, reject) => {
+          console.log("loopEntityPromise : ", datas);
           if (datas[i]) {
             // S'il contient des sous entités.
-            if (datas[i].entities) {
+            if (datas[i].entities && typeof datas[i].entities === "object") {
               const keys = Object.keys(datas[i].entities);
               loopFieldEntity(
                 datas[i].entities,
@@ -147,6 +176,10 @@ export default {
                 keys,
                 0
               ).then((entity) => {
+                console.log(
+                  " loopEntityPromise SEND with override entity : ",
+                  entity
+                );
                 this.$store
                   .dispatch("saveEntity", {
                     entity_type_id: datas[i].target_type,
@@ -154,13 +187,15 @@ export default {
                     index: i,
                   })
                   .then((resp) => {
-                    datas[i].entity = resp.data.json;
+                    values.push({ target_id: resp.data.id });
+                    // datas[i].entity = resp.data.json;
                     i = i + 1;
                     if (i < datas.length) {
                       resolv(loopEntityPromise(datas, i));
-                    } else resolv(datas);
+                    } else resolv(values);
                   })
                   .catch((er) => {
+                    console.log("catch : ", er);
                     reject(er);
                   });
               });
@@ -174,17 +209,20 @@ export default {
                   index: i,
                 })
                 .then((resp) => {
-                  datas[i].entity = resp.data.json;
+                  values.push({ target_id: resp.data.id });
+                  // datas[i].entity = resp.data.json;
                   i = i + 1;
                   if (i < datas.length) {
                     resolv(loopEntityPromise(datas, i));
-                  } else resolv(datas);
+                  } else resolv(values);
                 })
                 .catch((er) => {
+                  console.log("catch : ", er);
                   reject(er);
                 });
             }
           } else {
+            console.log(" loopEntityPromise END ");
             resolv([]);
           }
         });

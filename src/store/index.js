@@ -33,26 +33,31 @@ export default new Vuex.Store({
         titre: "Enregistrement de votre domaine",
         step: "register_domaine",
         status: false,
+        entities: [],
       },
       {
         titre: "Creation de vos contenus",
         step: "create_content",
         status: false,
+        entities: [],
       },
       {
         titre: "Creation de votre theme",
         status: false,
         step: "create_theme",
+        entities: [],
       },
       {
         titre: "Mise à jour de l'entete",
         status: false,
         step: "layout_header",
+        entities: [],
       },
       {
         titre: "Mise à jour du pied de page",
         status: false,
         step: "layout_footer",
+        entities: [],
       },
       {
         titre: "Genere les styles du theme",
@@ -67,8 +72,13 @@ export default new Vuex.Store({
     strings: {},
     //
     messages: { errors: [], warnings: [] },
-    //Array contenant les données a sauvegarder.
+    // Array contenant les données a sauvegarder.
     entityDuplicate: [],
+    // use by module login
+    form: {
+      name: [{ value: "" }],
+      mail: [{ value: "" }],
+    },
   },
   getters: {
     numbersEntities: (state) => {
@@ -135,8 +145,14 @@ export default new Vuex.Store({
       commit("DISABLE_CREATION");
       saveEntity.currentBuildStep = 0;
     },
-    //
-    duplicateEntities({ commit }, payload) {
+    /**
+     * Recupere la matrice de l'entite afin de pouvoir creer les entites en relations avec ce dernier.
+     *
+     * @param {*} param0
+     * @param {*} payload
+     * @returns
+     */
+    getMatriceEntities({ commit }, payload) {
       return new Promise((resolv, reject) => {
         config
           .bPost(
@@ -145,7 +161,7 @@ export default new Vuex.Store({
           )
           .then((resp) => {
             commit("SET_ENTITYDUPLICATE", resp.data);
-            resolv(resp.data);
+            resolv(resp);
           })
           .catch((er) => {
             reject(er);
@@ -155,21 +171,24 @@ export default new Vuex.Store({
     saveEntity({ commit }, payload) {
       commit("ACTIVE_CREATION");
       return new Promise((resolv, reject) => {
-        config
-          .bPost(
-            "/apivuejs/save-entity/" + payload.entity_type_id,
-            payload.value
-          )
-          .then((resp) => {
-            console.log("resp : ", resp);
-            setTimeout(() => {
+        if (payload.entity_type_id == undefined || !payload.entity_type_id) {
+          reject("Paramettre manquant");
+        } else
+          config
+            .bPost(
+              "/apivuejs/save-entity/" + payload.entity_type_id,
+              payload.value
+            )
+            .then((resp) => {
+              console.log("resp : ", resp);
+              //setTimeout(() => {
               console.log(" payload : ", payload);
               resolv(resp);
-            }, 3000);
-          })
-          .catch((er) => {
-            reject(er);
-          });
+              //}, 1000);
+            })
+            .catch((er) => {
+              reject(er);
+            });
       });
     },
     // Load strings texte

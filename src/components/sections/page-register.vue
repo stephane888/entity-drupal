@@ -2,20 +2,21 @@
   <div>
     <label v-html="strings.ask_to_login"></label>
     <loginRegister
-      action_after_login="emit_even"
-      model_register_form="generate_password"
+      actionAfterLogin="emit_even"
+      modelRegisterForm="generate_password"
     ></loginRegister>
   </div>
 </template>
 
 <script>
-import loginRegister from "drupal-vuejs/src/App/users/user.js";
 import { mapState } from "vuex";
 import users from "../../users.js";
 export default {
   name: "page-register",
   components: {
-    loginRegister,
+    loginRegister: () => {
+      return import("drupal-vuejs/src/App/components/LoginRegister.vue");
+    },
   },
   mounted() {
     this.check_if_user_connected();
