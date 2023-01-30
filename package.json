@@ -13,6 +13,7 @@
     "bootstrap": "^4.6.0",
     "bootstrap-vue": "^2.22.0",
     "ckeditor4-vue": "^2.0.0",
+    "components_h_vuejs": "file:../components_bootstrapvuejs",
     "core-js": "^3.8.3",
     "drupal-vuejs": "file:../drupal-vuejs",
     "sass": "^1.50.1",

@@ -22,7 +22,7 @@
               :field="render.field"
               :model="render.model"
               :class_css="[]"
-              namespace_store="storeFormRenderFooter/setValue"
+              namespace-store="storeFormRenderFooter"
               v-for="(render, k) in card.fields"
               :key="k"
             ></component>
@@ -44,32 +44,39 @@
 
 <script>
 import { mapState } from "vuex";
-import loadField from "../fieldsDrupal/loadField";
+//import loadField from "../fieldsDrupal/loadField";
+import loadField from "components_h_vuejs/src/components/fieldsDrupal/loadField.js";
+import config from "./config";
 export default {
   name: "formRenderFooter",
+  computed: {
+    ...mapState("storeFormRenderFooter", {
+      entities: (state) => state.entities,
+    }),
+  },
   methods: {
     buildFields() {
       const fields = [];
       const subFields = [];
-      for (const i in this.form) {
-        subFields.push({
-          template: loadField.getField(this.form[i]),
-          field: this.form[i],
-          model: this.model,
-        });
-      }
+      loadField.setConfig(config);
+      this.entities.forEach((element) => {
+        if (element.form_sort && element.entity) {
+          console.log(" element.entity : ", element);
+          for (const i in element.form_sort) {
+            subFields.push({
+              template: loadField.getField(element.form_sort[i]),
+              field: element.form_sort[i],
+              model: element.entity,
+            });
+          }
+        }
+      });
       fields.push({
-        title: "Pied de page ",
+        title: "entete",
         fields: subFields,
       });
       return fields;
     },
-  },
-  computed: {
-    ...mapState("storeFormRenderFooter", {
-      form: (state) => state.form,
-      model: (state) => state.model,
-    }),
   },
 };
 </script>

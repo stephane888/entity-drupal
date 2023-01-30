@@ -45,8 +45,8 @@
               :key="i"
               class="d-block"
             >
-              {{ incresing.creates }}/{{ incresing.numbers }} Contenu(s) de la
-              page : {{ incresing.page }}.
+              {{ incresing.creates }}/{{ incresing.numbers }} Contenu(s) à creer
+              pour la page : {{ incresing.page }}.
             </small>
           </div>
           <b-icon
@@ -93,7 +93,6 @@
         </a>
       </div>
     </div>
-    <pre class="text-left"> build_steps {{ build_steps }}  </pre>
   </div>
 </template>
 

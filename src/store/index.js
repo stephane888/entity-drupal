@@ -7,7 +7,7 @@ import renderByStep from "../components/formRender/storeFields";
 import storeFormRenderHeader from "../components/FormRenderHeader/storeFormRenderHeader";
 import storeFormRenderFooter from "../components/FormRenderFooter/storeFormRenderFooter";
 import config from "../rootConfig";
-
+// ?XDEBUG_TRIGGER=run
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -145,6 +145,7 @@ export default new Vuex.Store({
       commit("DISABLE_CREATION");
       saveEntity.currentBuildStep = 0;
     },
+
     /**
      * Recupere la matrice de l'entite afin de pouvoir creer les entites en relations avec ce dernier.
      *

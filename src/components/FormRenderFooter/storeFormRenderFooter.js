@@ -2,16 +2,18 @@ import config from "./config";
 export default {
   namespaced: true,
   state: () => ({
-    // Contient les informations sur le formaulaire.
-    form: {},
-    // Contient l'etat du formulaire.
-    model: {},
+    // Contient l'entities ou les entities constituant l'entete.
+    entities: [],
   }),
   mutations: {
     SET_VALUE(state, payload) {
       if (payload.fieldName && payload.value) {
-        if (state.model[payload.fieldName]) {
-          state.model[payload.fieldName] = payload.value;
+        if (
+          state.entities[0] &&
+          state.entities[0].entity &&
+          state.entities[0].entity[payload.fieldName]
+        ) {
+          state.entities[0].entity[payload.fieldName] = payload.value;
         }
       }
     },
@@ -24,8 +26,7 @@ export default {
         .post("/vuejs-entity/form/paragraphs/" + idHome + "/footer")
         .then((resp) => {
           if (resp.data) {
-            state.form = resp.data.form;
-            state.model = resp.data.model;
+            state.entities = resp.data;
           }
         });
     },

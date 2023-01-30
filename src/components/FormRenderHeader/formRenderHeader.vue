@@ -18,13 +18,13 @@
         >
           <b-card-body>
             <component
+              v-for="(render, k) in card.fields"
+              :key="k"
               :is="render.template"
               :field="render.field"
               :model="render.model"
               :class_css="[]"
-              namespace_store="storeFormRenderHeader/setValue"
-              v-for="(render, k) in card.fields"
-              :key="k"
+              namespace-store="storeFormRenderHeader"
             ></component>
           </b-card-body>
         </b-collapse>
@@ -44,33 +44,43 @@
 
 <script>
 import { mapState } from "vuex";
-import loadField from "../fieldsDrupal/loadField";
+//import loadField from "../fieldsDrupal/loadField";
+import loadField from "components_h_vuejs/src/components/fieldsDrupal/loadField.js";
+import config from "./config";
 export default {
   name: "formRenderHeader",
-
+  computed: {
+    ...mapState("storeFormRenderHeader", {
+      entities: (state) => state.entities,
+    }),
+  },
   methods: {
+    /**
+     * Permet de generer les champs pour les entites de premier niveau.
+     * ( par principe on devrait avoir un seule entité de premier niveau ).
+     */
     buildFields() {
       const fields = [];
       const subFields = [];
-      for (const i in this.form) {
-        subFields.push({
-          template: loadField.getField(this.form[i]),
-          field: this.form[i],
-          model: this.model,
-        });
-      }
+      loadField.setConfig(config);
+      this.entities.forEach((element) => {
+        if (element.form_sort && element.entity) {
+          console.log(" element.entity : ", element);
+          for (const i in element.form_sort) {
+            subFields.push({
+              template: loadField.getField(element.form_sort[i]),
+              field: element.form_sort[i],
+              model: element.entity,
+            });
+          }
+        }
+      });
       fields.push({
         title: "entete",
         fields: subFields,
       });
       return fields;
     },
-  },
-  computed: {
-    ...mapState("storeFormRenderHeader", {
-      form: (state) => state.form,
-      model: (state) => state.model,
-    }),
   },
 };
 </script>

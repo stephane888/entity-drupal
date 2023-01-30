@@ -84,7 +84,8 @@ export default {
           step.status = "run";
           this.CreateHomeContent(step)
             .then((resp) => {
-              this.homePageContent = resp.data;
+              this.homePageContent = resp;
+              console.log(" this.homePageContent ", this.homePageContent);
               var passNext = () => {
                 setTimeout(() => {
                   step.status = "ok";
@@ -126,26 +127,37 @@ export default {
         case "layout_header":
           step.status = "run";
           if (this.domainRegister.id) {
-            this.createParagraphHeader(state)
-              .then((resp) => {
-                var passNext = () => {
-                  setTimeout(() => {
-                    step.status = "ok";
-                    this.currentBuildStep++;
-                    this.runStep(steps, state);
-                  }, 500);
-                };
-                this.addEntityToBlock(resp.data, "top_header")
-                  .then(() => {
-                    passNext();
+            this.CreateMenus(state)
+              .then(() => {
+                this.createParagraphHeader(state)
+                  .then((resp) => {
+                    var passNext = () => {
+                      setTimeout(() => {
+                        step.status = "ok";
+                        this.currentBuildStep++;
+                        this.runStep(steps, state);
+                      }, 500);
+                    };
+                    this.addEntityToBlock(
+                      resp,
+                      "paragraph",
+                      "top_header",
+                      "entete"
+                    )
+                      .then(() => {
+                        passNext();
+                      })
+                      .catch((er) => {
+                        this.runErrorsMessages(er);
+                        //passNext();
+                      });
                   })
                   .catch(() => {
-                    passNext();
+                    step.status = "error";
                   });
               })
-              .catch((resp) => {
+              .catch(() => {
                 step.status = "error";
-                this.runErrorsMessages(resp);
               });
           } else {
             step.status = "error";
@@ -156,7 +168,8 @@ export default {
         case "layout_footer":
           step.status = "run";
           if (this.domainRegister.id) {
-            this.createBlockContentFooter(state)
+            this.addDefaultBlockInRegion();
+            this.createParagraphFooter(state)
               .then((resp) => {
                 var passNext = () => {
                   setTimeout(() => {
@@ -165,12 +178,13 @@ export default {
                     this.runStep(steps, state);
                   }, 500);
                 };
-                this.addEntityToBlock(resp.data, "footer")
+                this.addEntityToBlock(resp, "paragraph", "footer", "footer")
                   .then(() => {
                     passNext();
                   })
-                  .catch(() => {
-                    passNext();
+                  .catch((er) => {
+                    this.runErrorsMessages(er);
+                    // passNext();
                   });
               })
               .catch((resp) => {
@@ -274,7 +288,7 @@ export default {
       store
         .dispatch("getMatriceEntities", payload)
         .then((resp) => {
-          console.log("CreateContent resp : ", resp);
+          console.log(" CreateContent resp : ", resp);
           this.getNumberEntities(resp.data).then((numbers) => {
             var vals = {
               numbers: numbers,
@@ -308,25 +322,7 @@ export default {
         });
     });
   },
-  // On va cree la page d'accueil en function de l'identifiant present dans l'url.
-  CreateContentOLD() {
-    const idHome = window.location.pathname.split("/").pop();
-    const title =
-      this.donneeInternetEntity.name[0] &&
-      this.donneeInternetEntity.name[0].value
-        ? "Bienvenue chez " + this.donneeInternetEntity.name[0].value
-        : "Theme generé";
-    const values = {
-      name: [{ value: title }],
-      field_domain_access: [{ target_id: this.domainRegister.id }],
-      field_domain_source: [{ target_id: this.domainRegister.id }],
-      is_default_theme: [{ value: false }],
-    };
-    return this.bPost(
-      "/vuejs-entity/entity/generate-page-web/" + idHome,
-      values
-    );
-  },
+
   // On cree les autres pages :
   CreateOrtherPages(step) {
     return new Promise((resolv, reject) => {
@@ -466,10 +462,10 @@ export default {
         .then((resp) => {
           console.log("resp : ", resp);
           if (resp.data.menu && resp.data.menu.id) {
+            console.log(state);
             // On met à jour le champs "field_reference_menu" au niveau de l'object du header
-            state.storeFormRenderHeader.model.field_reference_menu = [
-              { target_id: resp.data.menu.id },
-            ];
+            state.storeFormRenderHeader.entities[0].entity.field_reference_menu =
+              [{ target_id: resp.data.menu.id }];
             resolv();
           } else {
             this.messages.warnings.push(
@@ -567,73 +563,98 @@ export default {
   },
   /**
    * Creation du paragraph d'entete.
+   * Les paraphages doivent suivrent le meme logique de creation de contenu que le systeme matrice,
+   * car cela permet de modifier les données et les sous données.
+   *
    * @param {*} state
    * @returns
    */
-  // createParagraphHeader(state) {
-  //   return new Promise((resolv, reject) => {
-  //     //
-  //   });
-  // },
-  /**
-   * Les données ont ete simplifié afin de permettre un ajout rapide.
-   * ( On envoit les données pour le paragraph. On cree le nouveau block, on assoccie le paragrah )
-   * @param {*} state
-   * @returns
-   */
-  createBlockContentHeaderOLD(state) {
+  createParagraphHeader(state) {
     return new Promise((resolv, reject) => {
-      state.storeFormRenderHeader.model.field_domain_access = [
-        { target_id: this.domainRegister.id },
-      ];
-      state.storeFormRenderHeader.model.field_domain_source = [
-        { target_id: this.domainRegister.id },
-      ];
-      //
-      this.addDefaultBlockInRegion();
-      this.CreateMenus(state)
-        .then(() => {
-          resolv(
-            this.bPost(
-              "/vuejs-entity/entity/add-paragrph-in-entity/block_content/header",
-              {
-                paragraph: state.storeFormRenderHeader.model,
-                entity: {
-                  info: [{ value: "Entete" }],
-                  field_domain_access: [{ target_id: this.domainRegister.id }],
-                  field_domain_source: [{ target_id: this.domainRegister.id }],
-                },
-              }
-            )
-          );
+      const headers = state.storeFormRenderHeader.entities;
+      this.getNumberEntities(headers)
+        .then((numbers) => {
+          // On met à jour le domaineId;
+          var vals = {
+            numbers: numbers,
+            creates: 0,
+            page: "",
+          };
+
+          this.prepareSaveEntities(headers, vals, true)
+            .then((entities) => {
+              // car on doit avoir un seul niveau de données.
+              if (entities[0] && entities[0].id) {
+                resolv(entities[0]);
+              } else
+                reject(
+                  " Une erreur s'est produite pendant la construction de l'entete "
+                );
+            })
+            .catch((er) => {
+              this.runErrorsMessages(er);
+              reject(
+                " Une erreur s'est produite pendant la construction de l'entete ... "
+              );
+            });
         })
-        .catch(() => {
-          reject();
+        .catch((er) => {
+          this.runErrorsMessages(er);
+          reject(" Impossible de determiner les sous entites de l'entete ... ");
         });
     });
   },
-  // addEntityToBlock(entity, entity_type_id, region) {
-  //   return new Promise((resolv, reject) => {
-  //     //
-  //   });
-  // },
-  /**
-   * Permet d'ajouter block_content aux blocks.
-   * @param {*} blockContent
-   */
-  addEntityBlockContentToBlock(blockContent, region) {
+  createParagraphFooter(state) {
     return new Promise((resolv, reject) => {
-      if (blockContent["uuid"]) {
-        const type = blockContent["type"][0]["target_id"];
-        const uuid = blockContent["uuid"][0]["value"];
-        const label = blockContent["info"][0]["value"];
+      const footers = state.storeFormRenderFooter.entities;
+      console.log("footers : ", footers);
+      this.getNumberEntities(footers)
+        .then((numbers) => {
+          // On met à jour le domaineId;
+          var vals = {
+            numbers: numbers,
+            creates: 0,
+            page: "",
+          };
+          this.prepareSaveEntities(footers, vals, true)
+            .then((entities) => {
+              // car on doit avoir un seul niveau de données.
+              if (entities[0] && entities[0].id) {
+                resolv(entities[0]);
+              } else
+                reject(
+                  " Une erreur s'est produite pendant la construction de l'entete "
+                );
+            })
+            .catch((er) => {
+              this.runErrorsMessages(er);
+              reject(
+                " Une erreur s'est produite pendant la construction de l'entete ... "
+              );
+            });
+        })
+        .catch((er) => {
+          this.runErrorsMessages(er);
+          reject(" Impossible de determiner les sous entites de l'entete ... ");
+        });
+    });
+  },
+
+  addEntityToBlock(entity, entity_type_id, region, info = "") {
+    return new Promise((resolv, reject) => {
+      console.log("addEntityToBlock : ", entity);
+      if (entity.id && entity.id[0].value) {
+        const type = entity["type"][0]["target_id"];
+        const label = info + " : " + this.domainRegister.id;
         const id_domaine = limit(this.domainRegister.id, 20, "");
         const id_system = limit(id_domaine + type, 30, "");
+        const id = entity.id[0].value;
         const values = {
           id: id_system,
           theme: this.domainRegister.id,
           region: region,
-          plugin: "block_content:" + uuid,
+          plugin: "entity_block:" + entity_type_id,
+          provider: "entity_block",
           status: true,
           visibility: {
             domain: {
@@ -651,38 +672,17 @@ export default {
             id: id_system,
             label: label,
             label_display: false,
-            provider: "block_content",
+            provider: "entity_block",
+            entity: id,
+            view_mode: "default",
           },
         };
+        console.log(" addEntityToBlock values : ", values);
         resolv(this.bPost("/vuejs-entity/entity/add-block-in-region", values));
-      } else {
-        this.messages.warnings.push(
-          " Impossible d'ajouter le bloc, region : " + region
-        );
-        reject();
-      }
+      } else reject(" ID du paragraph non definit ");
     });
   },
-  // On ajoute la config pour le footer du layout.
-  createBlockContentFooter(state) {
-    state.storeFormRenderFooter.model.field_domain_access = [
-      { target_id: this.domainRegister.id },
-    ];
-    state.storeFormRenderFooter.model.field_domain_source = [
-      { target_id: this.domainRegister.id },
-    ];
-    return this.bPost(
-      "/vuejs-entity/entity/add-paragrph-in-entity/block_content/footer",
-      {
-        paragraph: state.storeFormRenderFooter.model,
-        entity: {
-          info: [{ value: " Pied de page " }],
-          field_domain_access: [{ target_id: this.domainRegister.id }],
-          field_domain_source: [{ target_id: this.domainRegister.id }],
-        },
-      }
-    );
-  },
+
   generateStyleTheme() {
     return new Promise((resolv, reject) => {
       const idHome = window.location.pathname.split("/").pop();
@@ -714,32 +714,7 @@ export default {
         });
     });
   },
-  /**
-   *
-   * @deprecated
-   */
-  convertPagesToItemsMainMenu() {
-    const items = [];
-    if (
-      this.donneeInternetEntity.pages &&
-      this.donneeInternetEntity.pages.length
-    ) {
-      const menusR = {
-        nos_services_rc_web_: 58,
-        qui_sommes_nous: 38,
-        page_realisation: 14,
-        page_tarif_rc_web_: 56,
-        comment_sa_marche: 1,
-        retructement: 16,
-      };
-      this.donneeInternetEntity.pages.forEach((item) => {
-        if (menusR[item.value]) {
-          items.push(menusR[item.value]);
-        }
-      });
-      return items;
-    } else return items;
-  },
+
   //
   ApplieColor(values) {
     return new Promise((resolv) => {
@@ -920,8 +895,19 @@ export default {
    * @param {Object} suivers
    * @return {Array} un tableau d'entité de drupal.
    */
-  prepareSaveEntities(response, suivers) {
+  prepareSaveEntities(response, suivers, ActionDomainId = false) {
     return new Promise((resolu, rejecte) => {
+      const updateDomainId = (entity) => {
+        if (
+          ActionDomainId &&
+          this.domainRegister.id &&
+          entity.field_domain_access
+        ) {
+          entity.field_domain_access = [{ target_id: this.domainRegister.id }];
+        }
+        return entity;
+      };
+
       /**
        * Permet de creer les sous contenus et return les target_ids.
        * @param {Array} items
@@ -945,7 +931,7 @@ export default {
                 store
                   .dispatch("saveEntity", {
                     entity_type_id: items[i].target_type,
-                    value: entity,
+                    value: updateDomainId(entity),
                     index: i,
                   })
                   .then((resp) => {
@@ -968,7 +954,7 @@ export default {
               store
                 .dispatch("saveEntity", {
                   entity_type_id: item.target_type,
-                  value: item.entity,
+                  value: updateDomainId(item.entity),
                   index: i,
                 })
                 .then((resp) => {
@@ -1052,7 +1038,7 @@ export default {
                 store
                   .dispatch("saveEntity", {
                     entity_type_id: datas[i].target_type,
-                    value: entity,
+                    value: updateDomainId(entity),
                     index: i,
                   })
                   .then((resp) => {
@@ -1075,7 +1061,7 @@ export default {
               store
                 .dispatch("saveEntity", {
                   entity_type_id: datas[i].target_type,
-                  value: datas[i].entity,
+                  value: updateDomainId(datas[i].entity),
                   index: i,
                 })
                 .then((resp) => {
