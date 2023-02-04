@@ -218,7 +218,6 @@ export default {
     // Contient les champs d'une etape.
     stepFields: (state) => {
       const fields = [];
-
       const step = state.steppers[state.current_step];
       var save_step = true;
       // validation de l'etape:
@@ -304,7 +303,6 @@ export default {
       ) {
         state.valid_steppers.push(state.current_step);
       }
-
       return fields;
     },
   },

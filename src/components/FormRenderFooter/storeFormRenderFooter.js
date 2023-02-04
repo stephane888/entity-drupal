@@ -6,16 +6,22 @@ export default {
     entities: [],
   }),
   mutations: {
+    // Permet de mettre à jour un champs ...
     SET_VALUE(state, payload) {
-      if (payload.fieldName && payload.value) {
-        if (
-          state.entities[0] &&
-          state.entities[0].entity &&
-          state.entities[0].entity[payload.fieldName]
-        ) {
-          state.entities[0].entity[payload.fieldName] = payload.value;
+      console.log(" SET_VALUE payload ", payload);
+      function updateSettings(settings, keyPath, value) {
+        const keys = keyPath.split(".");
+        const targetKey = keys.pop();
+        let current = settings;
+        for (let i = 0; i < keys.length; ++i) {
+          current = current[keys[i]];
+          if (!current) {
+            throw new Error(" Specified key not found. " + keys[i]);
+          }
         }
+        current[targetKey] = value;
       }
+      updateSettings(state.entities, payload.fieldName, payload.value);
     },
     // On charge les données de configuration du layout.
     // /vuejs-entity/form/paragraph/default/headers

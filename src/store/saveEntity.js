@@ -360,6 +360,7 @@ export default {
                   if (resp.data[0].entity && resp.data[0].entity.name[0]) {
                     vals.page = resp.data[0].entity.name[0].value;
                   }
+                  console.log("resp.data : ", resp.data);
                   this.prepareSaveEntities(resp.data, vals)
                     .then((entities) => {
                       entities.forEach((entity) => {
@@ -385,7 +386,7 @@ export default {
                   step.entities.push(vals);
                 });
               });
-              // this.bPost("/vuejs-entity/entity/generate-page-web/" + id, values)
+
               //   .then((resp) => {
               //     this.OrtherPages.push(resp.data);
               //     var id = i + 1;

@@ -25,6 +25,7 @@
               :model="render.model"
               :class_css="[]"
               namespace-store="storeFormRenderHeader"
+              :parent-name="c + '.entity.'"
             ></component>
           </b-card-body>
         </b-collapse>

@@ -22,6 +22,7 @@
               :field="render.field"
               :model="render.model"
               :class_css="[]"
+              :parent-name="c + '.entity.'"
               namespace-store="storeFormRenderFooter"
               v-for="(render, k) in card.fields"
               :key="k"
@@ -44,7 +45,7 @@
 
 <script>
 import { mapState } from "vuex";
-//import loadField from "../fieldsDrupal/loadField";
+// import loadField from "../fieldsDrupal/loadField";
 import loadField from "components_h_vuejs/src/components/fieldsDrupal/loadField.js";
 import config from "./config";
 export default {
@@ -72,7 +73,7 @@ export default {
         }
       });
       fields.push({
-        title: "entete",
+        title: "Pied de page",
         fields: subFields,
       });
       return fields;
