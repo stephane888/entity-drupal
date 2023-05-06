@@ -67,8 +67,13 @@ export default {
                 if (resp.data && resp.data.domain_ovh_entity)
                   this.domainOvhEntity = resp.data.domain_ovh_entity;
                 if (this.domainRegister.hostname) {
+                  var languageId = "/";
+                  languageId +=
+                    rootConfig.languageId && rootConfig.languageId != null
+                      ? rootConfig.languageId
+                      : "";
                   store.commit("SET_HOSTNAME", {
-                    domain: this.domainRegister.hostname,
+                    domain: this.domainRegister.hostname + languageId,
                     scheme: this.domainRegister.scheme,
                   });
                 }
@@ -279,7 +284,7 @@ export default {
       const payload = {
         id: idHome,
         content: {
-          name: [{ value: title }],
+          name: [{ value: title }], // Ce titre va etre surcharger par celui de la version model. Ensuite on devrait le supprimer.(meme pour auther page)
           field_domain_access: [{ target_id: this.domainRegister.id }],
           field_domain_source: [{ target_id: this.domainRegister.id }],
           is_default_theme: [{ value: false }],
