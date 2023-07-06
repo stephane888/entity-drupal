@@ -64,6 +64,11 @@ export default new Vuex.Store({
         status: false,
         step: "generate_style",
       },
+      {
+        titre: "Verification",
+        status: false,
+        step: "check_apply_actions",
+      },
       // Selectionnner les menus, les pages, le logo.
     ],
     // utilisateur connecter.

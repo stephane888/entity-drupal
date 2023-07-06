@@ -169,5 +169,11 @@ export default {
   .render-model {
     top: 0;
   }
+  .custom-control-label {
+    font-size: 1rem;
+    margin: 0;
+    padding-top: 3px;
+    font-weight: 300;
+  }
 }
 </style>

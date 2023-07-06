@@ -225,6 +225,20 @@ export default {
             this.runStep(steps, state);
           }
           break;
+        case "check_apply_actions":
+          step.status = "run";
+          this.CheckApplyActions()
+            .then(() => {
+              step.status = "ok";
+              this.currentBuildStep++;
+              this.runStep(steps, state);
+            })
+            .catch(() => {
+              step.status = "error";
+              this.currentBuildStep++;
+              this.runStep(steps, state);
+            });
+          break;
         default:
           // on ne devrait pas arrivé ici.
           this.messages.warnings.push(
@@ -241,6 +255,14 @@ export default {
       store.commit("CLEAN_LOCALSTORAGE");
       this.runWarningsMessages();
     }
+  },
+  /**
+   * Cette etape permet d'appliquer les configurations importante
+   */
+  CheckApplyActions() {
+    return this.bPost("/vuejs-entity/check-apply-actions", {
+      domain: this.domainRegister,
+    });
   },
   // Dans cette etape, on cree les entités "donnee_internet_entity" et "domain_ovh_entity".
   CreateDomaine(entity) {
