@@ -175,5 +175,10 @@ export default {
     padding-top: 3px;
     font-weight: 300;
   }
+  .form-group {
+    label {
+      font-size: 1.6rem;
+    }
+  }
 }
 </style>

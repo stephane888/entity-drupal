@@ -13,7 +13,7 @@ export default {
    */
   domainRegister: {},
   /**
-   * entité domain
+   * Entité domain_ovh_entity sur drupal
    */
   domainOvhEntity: {},
   OrtherPages: [],
@@ -455,9 +455,12 @@ export default {
       // Build menu :
       const menu = {
         //this.domainOvhEntity.sub_domain[0].value contient a-z0-9,
-        id: this.domainOvhEntity.sub_domain[0].value + "_main",
+        id: this.domainOvhEntity.sub_domain[0].value + "-main", //on a remplacé "_" par "-", il faudra resterter l'export/import.
         label: this.domainRegister.id + ": menu principal",
         description: "Menu generé automatiquement",
+        third_party_settings: {
+          lesroidelareno: { domain_id: this.domainRegister.id },
+        },
       };
       // build items
       const items = [];
@@ -564,6 +567,11 @@ export default {
                 this.donneeInternetEntity.name[0] &&
                 this.donneeInternetEntity.name[0].value
                   ? this.donneeInternetEntity.name[0].value
+                  : "",
+              mail:
+                this.domainOvhEntity.sub_domain[0] &&
+                this.domainOvhEntity.sub_domain[0].value
+                  ? this.domainOvhEntity.sub_domain[0].value + "@wb-horizon.com"
                   : "",
               "page.404": "",
               "page.403": "",
