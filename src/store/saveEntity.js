@@ -1,6 +1,7 @@
 import rootConfig from "../rootConfig";
 import store from "./index";
 import { limit } from "stringz";
+import FormUttilities from "components_h_vuejs/src/js/FormUttilities";
 // ?XDEBUG_TRIGGER=run
 //
 export default {
@@ -51,27 +52,17 @@ export default {
           this.RegisterDomaine()
             .then((resp) => {
               // On lance la creation sur OVH, apres cette etape.(car les deux etapes modifie la meme entité)
-              this.bPost(
-                "/ovh-api-rest/create-domaine/" +
-                  this.donneeInternetEntity.domain_ovh_entity[0].target_id
-              ).catch(() => {
-                this.messages.warnings.push(
-                  " Votre domaine n'a pas pu etre generer "
-                );
+              this.bPost("/ovh-api-rest/create-domaine/" + this.donneeInternetEntity.domain_ovh_entity[0].target_id).catch(() => {
+                this.messages.warnings.push(" Votre domaine n'a pas pu etre generer ");
               });
               setTimeout(() => {
                 step.status = "ok";
                 this.currentBuildStep++;
-                if (resp.data && resp.data.domain)
-                  this.domainRegister = resp.data.domain;
-                if (resp.data && resp.data.domain_ovh_entity)
-                  this.domainOvhEntity = resp.data.domain_ovh_entity;
+                if (resp.data && resp.data.domain) this.domainRegister = resp.data.domain;
+                if (resp.data && resp.data.domain_ovh_entity) this.domainOvhEntity = resp.data.domain_ovh_entity;
                 if (this.domainRegister.hostname) {
                   var languageId = "/";
-                  languageId +=
-                    rootConfig.languageId && rootConfig.languageId != null
-                      ? rootConfig.languageId
-                      : "";
+                  languageId += rootConfig.languageId && rootConfig.languageId != null ? rootConfig.languageId : "";
                   store.commit("SET_HOSTNAME", {
                     domain: this.domainRegister.hostname + languageId,
                     scheme: this.domainRegister.scheme,
@@ -101,6 +92,7 @@ export default {
               // On patiente que les autres pages soit ok.
               this.CreateOrtherPages(step)
                 .then(() => {
+                  console.log("Les autres pages sont crees.");
                   passNext();
                 })
                 .catch(() => {
@@ -143,12 +135,7 @@ export default {
                         this.runStep(steps, state);
                       }, 500);
                     };
-                    this.addEntityToBlock(
-                      resp,
-                      "paragraph",
-                      "top_header",
-                      "entete"
-                    )
+                    this.addEntityToBlock(resp, "paragraph", "top_header", "entete")
                       .then(() => {
                         passNext();
                       })
@@ -241,9 +228,7 @@ export default {
           break;
         default:
           // on ne devrait pas arrivé ici.
-          this.messages.warnings.push(
-            " Cette etape n'est pas definit : " + step.step
-          );
+          this.messages.warnings.push(" Cette etape n'est pas definit : " + step.step);
           step.status = "ok";
           this.currentBuildStep++;
           this.runStep(steps, state);
@@ -266,26 +251,14 @@ export default {
   },
   // Dans cette etape, on cree les entités "donnee_internet_entity" et "domain_ovh_entity".
   CreateDomaine(entity) {
-    return this.bPost(
-      "/vuejs-entity/entity/save/donnee_internet_entity",
-      entity
-    );
+    return this.bPost("/vuejs-entity/entity/save/donnee_internet_entity", entity);
   },
   // On enregistre le domaine sur OVH et on l'enregistre egalement comme multidomaine sur drupal.
   RegisterDomaine() {
     return new Promise((resolv, reject) => {
-      if (
-        this.donneeInternetEntity.domain_ovh_entity &&
-        this.donneeInternetEntity.domain_ovh_entity[0] &&
-        this.donneeInternetEntity.domain_ovh_entity[0].target_id
-      ) {
+      if (this.donneeInternetEntity.domain_ovh_entity && this.donneeInternetEntity.domain_ovh_entity[0] && this.donneeInternetEntity.domain_ovh_entity[0].target_id) {
         // Cree l'entité domain s'il n'existe pas et recupere les entites domain et domain_ovh_entity.
-        resolv(
-          this.bPost(
-            "/vuejs-entity/domaine/add/" +
-              this.donneeInternetEntity.domain_ovh_entity[0].target_id
-          )
-        );
+        resolv(this.bPost("/vuejs-entity/domaine/add/" + this.donneeInternetEntity.domain_ovh_entity[0].target_id));
       } else {
         reject(" Le nom de domaine n'a pas pu etre creer ");
       }
@@ -298,11 +271,7 @@ export default {
   CreateHomeContent(step) {
     return new Promise((resolv, reject) => {
       const idHome = window.location.pathname.split("/").pop();
-      const title =
-        this.donneeInternetEntity.name[0] &&
-        this.donneeInternetEntity.name[0].value
-          ? "Bienvenue chez " + this.donneeInternetEntity.name[0].value
-          : "Theme generé";
+      const title = this.donneeInternetEntity.name[0] && this.donneeInternetEntity.name[0].value ? "Bienvenue chez " + this.donneeInternetEntity.name[0].value : "Theme generé";
       const payload = {
         id: idHome,
         content: {
@@ -330,16 +299,14 @@ export default {
                 // Dans ce cas principalment, on doit retourner uniquement le contenu de la homepage.
                 if (entities[0] && entities[0].id) {
                   resolv(entities[0]);
-                } else
-                  reject(
-                    " Une erreur s'est produite pendant la construction de la page "
-                  );
+                } else {
+                  console.log("Erreur home : ", entities);
+                  reject(" Une erreur s'est produite pendant la construction de la page ");
+                }
               })
               .catch((er) => {
                 this.runErrorsMessages(er);
-                reject(
-                  " Une erreur s'est produite pendant la construction de la page ... "
-                );
+                reject(" Une erreur s'est produite pendant la construction de la page ... ");
               });
             step.entities.push(vals);
           });
@@ -352,17 +319,18 @@ export default {
 
   // On cree les autres pages :
   CreateOrtherPages(step) {
-    return new Promise((resolv, reject) => {
-      if (
-        this.donneeInternetEntity.pages &&
-        this.donneeInternetEntity.pages.length
-      ) {
+    return new Promise((resolv2, reject) => {
+      if (this.donneeInternetEntity.pages && this.donneeInternetEntity.pages.length) {
         const options = this.getLabelPages();
+        /**
+         * Cree une page et son contenu à chaque execution
+         * @param {*} i
+         * @param {*} essaie
+         * @returns
+         */
         const loop = (i = 0, essaie = 1) => {
           return new Promise((resolv) => {
-            const id = this.donneeInternetEntity.pages[i]
-              ? this.donneeInternetEntity.pages[i].value
-              : null;
+            const id = this.donneeInternetEntity.pages[i] ? this.donneeInternetEntity.pages[i].value : null;
             const title = options[id] ? options[id] : "page generate";
             const values = {
               field_domain_access: [{ target_id: this.domainRegister.id }],
@@ -371,7 +339,8 @@ export default {
               is_home_page: [{ value: false }],
               name: [{ value: title }],
             };
-            if (id) {
+            console.log("run loop : ", id);
+            if (id !== null) {
               // on recupere la matrice.
               const payload = {
                 id: id,
@@ -387,33 +356,36 @@ export default {
                   if (resp.data[0].entity && resp.data[0].entity.name[0]) {
                     vals.page = resp.data[0].entity.name[0].value;
                   }
-                  console.log("resp.data : ", resp.data);
+                  console.log(" Creation des autres pages encours. resp.data : ", resp.data);
                   this.prepareSaveEntities(resp.data, vals)
                     .then((entities) => {
+                      console.log("entities : ", entities);
                       entities.forEach((entity) => {
                         this.OrtherPages.push(entity);
                       });
                       var id = i + 1;
+                      console.log(" OrtherPages : ", this.OrtherPages, "\n id : ", id);
                       resolv(loop(id));
                     })
+                    /**
+                     * En cas d'erreur.
+                     * On fait 2 tentatives, si elle n'aboutie pas on passe à la suite.
+                     */
                     .catch(() => {
-                      this.messages.warnings.push(
-                        " Erreur rencontrée lors de la creation de cette page : <b>" +
-                          title +
-                          "</b> vous pourriez la re-creer plus tard. "
-                      );
+                      this.messages.warnings.push(" Erreur rencontrée lors de la creation de cette page : <b>" + title + "</b> vous pourriez la re-creer plus tard. ");
                       setTimeout(() => {
-                        if (essaie == 1) loop(i, 2);
-                        else {
+                        if (essaie <= 2) {
+                          essaie++;
+                          resolv(loop(i, essaie));
+                        } else {
                           var id2 = i + 1;
-                          loop(id2);
+                          resolv(loop(id2));
                         }
-                      }, 3000);
+                      }, 15000);
                     });
                   step.entities.push(vals);
                 });
               });
-
               //   .then((resp) => {
               //     this.OrtherPages.push(resp.data);
               //     var id = i + 1;
@@ -439,7 +411,7 @@ export default {
           });
         };
         // On lance la page 0.
-        resolv(loop());
+        resolv2(loop());
       } else {
         reject();
       }
@@ -469,15 +441,11 @@ export default {
           items.push({
             title: [
               {
-                value: page.name[0]
-                  ? page.name[0].value
-                  : "lien genere :" + page.id[0].value,
+                value: page.name[0] ? page.name[0].value : "lien genere :" + page.id[0].value,
               },
             ],
             enabled: [{ value: true }],
-            link: [
-              { uri: "internal:/site-internet-entity/" + page.id[0].value },
-            ],
+            link: [{ uri: "internal:/site-internet-entity/" + page.id[0].value }],
           });
       });
       // Contruit le menus et les items.
@@ -495,20 +463,15 @@ export default {
           if (resp.data.menu && resp.data.menu.id) {
             console.log(state);
             // On met à jour le champs "field_reference_menu" au niveau de l'object du header
-            state.storeFormRenderHeader.entities[0].entity.field_reference_menu =
-              [{ target_id: resp.data.menu.id }];
+            state.storeFormRenderHeader.entities[0].entity.field_reference_menu = [{ target_id: resp.data.menu.id }];
             resolv();
           } else {
-            this.messages.warnings.push(
-              " Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. "
-            );
+            this.messages.warnings.push(" Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. ");
             reject();
           }
         })
         .catch(() => {
-          this.messages.warnings.push(
-            " Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. "
-          );
+          this.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
           reject();
         });
     });
@@ -545,10 +508,7 @@ export default {
       },
       weight: 0,
     };
-    return this.bPost(
-      "/vuejs-entity/entity/add-block-in-region",
-      system_main_block
-    );
+    return this.bPost("/vuejs-entity/entity/add-block-in-region", system_main_block);
   },
   //
   async CreateTheme() {
@@ -557,32 +517,16 @@ export default {
         site_config: [
           {
             value: JSON.stringify({
-              "edit-config":
-                "domain.config." + this.domainRegister.id + ".system.site",
-              "page.front":
-                this.homePageContent.id && this.homePageContent.id[0]
-                  ? "/site-internet-entity/" + this.homePageContent.id[0].value
-                  : "",
-              name:
-                this.donneeInternetEntity.name[0] &&
-                this.donneeInternetEntity.name[0].value
-                  ? this.donneeInternetEntity.name[0].value
-                  : "",
-              mail:
-                this.domainOvhEntity.sub_domain[0] &&
-                this.domainOvhEntity.sub_domain[0].value
-                  ? this.domainOvhEntity.sub_domain[0].value + "@wb-horizon.com"
-                  : "",
+              "edit-config": "domain.config." + this.domainRegister.id + ".system.site",
+              "page.front": this.homePageContent.id && this.homePageContent.id[0] ? "/site-internet-entity/" + this.homePageContent.id[0].value : "",
+              name: this.donneeInternetEntity.name[0] && this.donneeInternetEntity.name[0].value ? this.donneeInternetEntity.name[0].value : "",
+              mail: this.domainOvhEntity.sub_domain[0] && this.domainOvhEntity.sub_domain[0].value ? this.domainOvhEntity.sub_domain[0].value + "@wb-horizon.com" : "",
               "page.404": "",
               "page.403": "",
             }),
           },
         ],
-        logo:
-          this.donneeInternetEntity.image_logo &&
-          this.donneeInternetEntity.image_logo.length
-            ? this.donneeInternetEntity.image_logo
-            : [],
+        logo: this.donneeInternetEntity.image_logo && this.donneeInternetEntity.image_logo.length ? this.donneeInternetEntity.image_logo : [],
         run_npm: [{ value: false }],
       };
       //
@@ -591,9 +535,7 @@ export default {
       }
       // Applis colors
       this.ApplieColor(values).then((resp) => {
-        resolv(
-          this.bPost("/vuejs-entity/entity/save/config_theme_entity", resp)
-        );
+        resolv(this.bPost("/vuejs-entity/entity/save/config_theme_entity", resp));
       });
     });
   },
@@ -622,16 +564,11 @@ export default {
               // car on doit avoir un seul niveau de données.
               if (entities[0] && entities[0].id) {
                 resolv(entities[0]);
-              } else
-                reject(
-                  " Une erreur s'est produite pendant la construction de l'entete "
-                );
+              } else reject(" Une erreur s'est produite pendant la construction de l'entete ");
             })
             .catch((er) => {
               this.runErrorsMessages(er);
-              reject(
-                " Une erreur s'est produite pendant la construction de l'entete ... "
-              );
+              reject(" Une erreur s'est produite pendant la construction de l'entete ... ");
             });
         })
         .catch((er) => {
@@ -657,16 +594,11 @@ export default {
               // car on doit avoir un seul niveau de données.
               if (entities[0] && entities[0].id) {
                 resolv(entities[0]);
-              } else
-                reject(
-                  " Une erreur s'est produite pendant la construction de l'entete "
-                );
+              } else reject(" Une erreur s'est produite pendant la construction de l'entete ");
             })
             .catch((er) => {
               this.runErrorsMessages(er);
-              reject(
-                " Une erreur s'est produite pendant la construction de l'entete ... "
-              );
+              reject(" Une erreur s'est produite pendant la construction de l'entete ... ");
             });
         })
         .catch((er) => {
@@ -722,24 +654,11 @@ export default {
   generateStyleTheme() {
     return new Promise((resolv, reject) => {
       const idHome = window.location.pathname.split("/").pop();
-      this.bGet(
-        "/generate_style_theme/set_default_style/" +
-          idHome +
-          "/" +
-          this.domainRegister.id
-      )
+      this.bGet("/generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
         .then(() => {
-          this.bGet(
-            "/layoutgenentitystyles/manuel/api-generate/" +
-              this.domainRegister.id
-          )
+          this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
             .then(() => {
-              resolv(
-                this.bGet(
-                  "/generate-style-theme/update-style-theme/" +
-                    this.domainRegister.id
-                )
-              );
+              resolv(this.bGet("/generate-style-theme/update-style-theme/" + this.domainRegister.id));
             })
             .catch(() => {
               reject();
@@ -755,33 +674,15 @@ export default {
   ApplieColor(values) {
     return new Promise((resolv) => {
       var newValue = {};
-      const type = this.donneeInternetEntity.type_color_theme.length
-        ? this.donneeInternetEntity.type_color_theme[0].value
-        : "0";
+      const type = this.donneeInternetEntity.type_color_theme.length ? this.donneeInternetEntity.type_color_theme[0].value : "0";
       // l'utilisateur a choisie les couleurs.
       if (type == "0") {
         newValue = {
           ...values,
-          wbubackground:
-            this.donneeInternetEntity.background &&
-            this.donneeInternetEntity.background.length
-              ? this.donneeInternetEntity.background
-              : [],
-          color_link_hover:
-            this.donneeInternetEntity.color_linkhover &&
-            this.donneeInternetEntity.color_linkhover.length
-              ? this.donneeInternetEntity.color_linkhover
-              : [],
-          color_primary:
-            this.donneeInternetEntity.color_primary &&
-            this.donneeInternetEntity.color_primary.length
-              ? this.donneeInternetEntity.color_primary
-              : [],
-          color_secondaire:
-            this.donneeInternetEntity.color_secondary &&
-            this.donneeInternetEntity.color_secondary.length
-              ? this.donneeInternetEntity.color_secondary
-              : [],
+          wbubackground: this.donneeInternetEntity.background && this.donneeInternetEntity.background.length ? this.donneeInternetEntity.background : [],
+          color_link_hover: this.donneeInternetEntity.color_linkhover && this.donneeInternetEntity.color_linkhover.length ? this.donneeInternetEntity.color_linkhover : [],
+          color_primary: this.donneeInternetEntity.color_primary && this.donneeInternetEntity.color_primary.length ? this.donneeInternetEntity.color_primary : [],
+          color_secondaire: this.donneeInternetEntity.color_secondary && this.donneeInternetEntity.color_secondary.length ? this.donneeInternetEntity.color_secondary : [],
         };
       } else {
         newValue = {
@@ -794,9 +695,7 @@ export default {
   },
   themeColors() {
     var colors = {};
-    const site_theme_color = this.donneeInternetEntity.site_theme_color.length
-      ? this.donneeInternetEntity.site_theme_color[0].value
-      : "audacieux";
+    const site_theme_color = this.donneeInternetEntity.site_theme_color.length ? this.donneeInternetEntity.site_theme_color[0].value : "audacieux";
     switch (site_theme_color) {
       case "audacieux":
         colors = {
@@ -866,12 +765,7 @@ export default {
     const options = {};
     const form = store.state.renderByStep.form;
 
-    if (
-      form.pages &&
-      form.pages.entity_form_settings &&
-      form.pages.entity_form_settings.list_options &&
-      form.pages.entity_form_settings.list_options.length
-    ) {
+    if (form.pages && form.pages.entity_form_settings && form.pages.entity_form_settings.list_options && form.pages.entity_form_settings.list_options.length) {
       const list_options = form.pages.entity_form_settings.list_options;
       list_options.forEach((item) => {
         options[item.value] = item.label;
@@ -889,9 +783,7 @@ export default {
    */
   runErrorsMessages(resp) {
     console.log("runErrorsMessages : ", resp);
-    this.messages.errors.push(
-      "<h3> Oups! Un problème est survenu. Veuillez réessayer </h3>"
-    );
+    this.messages.errors.push("<h3> Oups! Un problème est survenu. Veuillez réessayer </h3>");
     if (typeof resp === "string" || resp instanceof String) {
       this.messages.errors.push(resp);
     }
@@ -903,8 +795,7 @@ export default {
    * -
    */
   runWarningsMessages() {
-    if (this.messages.warnings.length)
-      store.commit("SET_WARNING_MESSAGES", this.messages.warnings);
+    if (this.messages.warnings.length) store.commit("SET_WARNING_MESSAGES", this.messages.warnings);
   },
   getNumberEntities(entityDuplicate) {
     return new Promise((resolv) => {
@@ -925,20 +816,31 @@ export default {
       }, 300);
     });
   },
+
+  /**
+   * --
+   * @param {*} response
+   * @param {*} suivers
+   * @param {*} ActionDomainId
+   * @returns
+   */
+  prepareSaveEntities(response, suivers, ActionDomainId = false) {
+    console.log(" Response : ", response);
+    console.log(" Suivers : ", suivers);
+    console.log(" ActionDomainId : ", ActionDomainId);
+    FormUttilities.domainRegister = this.domainRegister;
+    return FormUttilities.prepareSaveEntities(store, response, suivers, ActionDomainId);
+  },
   /**
    * Sauvegarde toutes les données d'une matrice, et retourne les entites parentes.
    * @param {Object} response
    * @param {Object} suivers
    * @return {Array} un tableau d'entité de drupal.
    */
-  prepareSaveEntities(response, suivers, ActionDomainId = false) {
+  prepareSaveEntitiesOLd(response, suivers, ActionDomainId = false) {
     return new Promise((resolu, rejecte) => {
       const updateDomainId = (entity) => {
-        if (
-          ActionDomainId &&
-          this.domainRegister.id &&
-          entity.field_domain_access
-        ) {
+        if (ActionDomainId && this.domainRegister.id && entity.field_domain_access) {
           entity.field_domain_access = [{ target_id: this.domainRegister.id }];
         }
         return entity;
@@ -957,13 +859,7 @@ export default {
             const item = items[i];
             if (items[i].entities) {
               const keys = Object.keys(items[i].entities);
-              loopFieldEntity(
-                items[i].entities,
-                keys[0],
-                items[i].entity,
-                keys,
-                0
-              ).then((entity) => {
+              loopFieldEntity(items[i].entities, keys[0], items[i].entity, keys, 0).then((entity) => {
                 store
                   .dispatch("saveEntity", {
                     entity_type_id: items[i].target_type,
@@ -1060,17 +956,8 @@ export default {
             // S'il contient des sous entités.
             if (datas[i].entities && typeof datas[i].entities === "object") {
               const keys = Object.keys(datas[i].entities);
-              loopFieldEntity(
-                datas[i].entities,
-                keys[0],
-                datas[i].entity,
-                keys,
-                0
-              ).then((entity) => {
-                console.log(
-                  " loopEntityPromise SEND with override entity : ",
-                  entity
-                );
+              loopFieldEntity(datas[i].entities, keys[0], datas[i].entity, keys, 0).then((entity) => {
+                console.log(" loopEntityPromise SEND with override entity : ", entity);
                 store
                   .dispatch("saveEntity", {
                     entity_type_id: datas[i].target_type,
