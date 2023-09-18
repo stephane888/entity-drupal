@@ -20,7 +20,6 @@ export default {
   OrtherPages: [],
   messages: { errors: [], warnings: [] },
   runStep(steps, state) {
-    console.log(" currentBuildStep : ", this.currentBuildStep);
     // On recupere
     var getDataStep = () => {
       if (steps[this.currentBuildStep]) {
@@ -81,7 +80,6 @@ export default {
           this.CreateHomeContent(step)
             .then((resp) => {
               this.homePageContent = resp;
-              console.log(" this.homePageContent ", this.homePageContent);
               var passNext = () => {
                 setTimeout(() => {
                   step.status = "ok";
@@ -92,7 +90,6 @@ export default {
               // On patiente que les autres pages soit ok.
               this.CreateOrtherPages(step)
                 .then(() => {
-                  console.log("Les autres pages sont crees.");
                   passNext();
                 })
                 .catch(() => {
@@ -284,7 +281,6 @@ export default {
       store
         .dispatch("getMatriceEntities", payload)
         .then((resp) => {
-          console.log(" CreateContent resp : ", resp);
           this.getNumberEntities(resp.data).then((numbers) => {
             var vals = {
               numbers: numbers,
@@ -300,7 +296,6 @@ export default {
                 if (entities[0] && entities[0].id) {
                   resolv(entities[0]);
                 } else {
-                  console.log("Erreur home : ", entities);
                   reject(" Une erreur s'est produite pendant la construction de la page ");
                 }
               })
@@ -339,7 +334,6 @@ export default {
               is_home_page: [{ value: false }],
               name: [{ value: title }],
             };
-            console.log("run loop : ", id);
             if (id !== null) {
               // on recupere la matrice.
               const payload = {
@@ -356,15 +350,12 @@ export default {
                   if (resp.data[0].entity && resp.data[0].entity.name[0]) {
                     vals.page = resp.data[0].entity.name[0].value;
                   }
-                  console.log(" Creation des autres pages encours. resp.data : ", resp.data);
                   this.prepareSaveEntities(resp.data, vals)
                     .then((entities) => {
-                      console.log("entities : ", entities);
                       entities.forEach((entity) => {
                         this.OrtherPages.push(entity);
                       });
                       var id = i + 1;
-                      console.log(" OrtherPages : ", this.OrtherPages, "\n id : ", id);
                       resolv(loop(id));
                     })
                     /**
@@ -459,9 +450,7 @@ export default {
         // block_content_type: "header_footer", // La construction doit etre statique car il ya un mappage de champs à faire.
       })
         .then((resp) => {
-          console.log("resp : ", resp);
           if (resp.data.menu && resp.data.menu.id) {
-            console.log(state);
             // On met à jour le champs "field_reference_menu" au niveau de l'object du header
             state.storeFormRenderHeader.entities[0].entity.field_reference_menu = [{ target_id: resp.data.menu.id }];
             resolv();
@@ -580,7 +569,6 @@ export default {
   createParagraphFooter(state) {
     return new Promise((resolv, reject) => {
       const footers = state.storeFormRenderFooter.entities;
-      console.log("footers : ", footers);
       this.getNumberEntities(footers)
         .then((numbers) => {
           // On met à jour le domaineId;
@@ -610,7 +598,6 @@ export default {
 
   addEntityToBlock(entity, entity_type_id, region, info = "") {
     return new Promise((resolv, reject) => {
-      console.log("addEntityToBlock : ", entity);
       if (entity.id && entity.id[0].value) {
         const type = entity["type"][0]["target_id"];
         const label = info + " : " + this.domainRegister.id;
@@ -645,7 +632,6 @@ export default {
             view_mode: "default",
           },
         };
-        console.log(" addEntityToBlock values : ", values);
         resolv(this.bPost("/vuejs-entity/entity/add-block-in-region", values));
       } else reject(" ID du paragraph non definit ");
     });
@@ -825,195 +811,8 @@ export default {
    * @returns
    */
   prepareSaveEntities(response, suivers, ActionDomainId = false) {
-    console.log(" Response : ", response);
-    console.log(" Suivers : ", suivers);
-    console.log(" ActionDomainId : ", ActionDomainId);
     FormUttilities.domainRegister = this.domainRegister;
     FormUttilities.numberTry = 2;
     return FormUttilities.prepareSaveEntities(store, response, suivers, ActionDomainId);
-  },
-  /**
-   * Sauvegarde toutes les données d'une matrice, et retourne les entites parentes.
-   * @param {Object} response
-   * @param {Object} suivers
-   * @return {Array} un tableau d'entité de drupal.
-   */
-  prepareSaveEntitiesOLd(response, suivers, ActionDomainId = false) {
-    return new Promise((resolu, rejecte) => {
-      const updateDomainId = (entity) => {
-        if (ActionDomainId && this.domainRegister.id && entity.field_domain_access) {
-          entity.field_domain_access = [{ target_id: this.domainRegister.id }];
-        }
-        return entity;
-      };
-
-      /**
-       * Permet de creer les sous contenus et return les target_ids.
-       * @param {Array} items
-       * @param {Integer} i
-       * @param {Array} values
-       */
-      const loopItem = (items, i, values = []) => {
-        return new Promise((resolv, reject) => {
-          console.log("loopItem : ", items);
-          if (items[i]) {
-            const item = items[i];
-            if (items[i].entities) {
-              const keys = Object.keys(items[i].entities);
-              loopFieldEntity(items[i].entities, keys[0], items[i].entity, keys, 0).then((entity) => {
-                store
-                  .dispatch("saveEntity", {
-                    entity_type_id: items[i].target_type,
-                    value: updateDomainId(entity),
-                    index: i,
-                  })
-                  .then((resp) => {
-                    suivers.creates++;
-                    values.push({ target_id: resp.data.id });
-                    i = i + 1;
-                    if (i < items.length) {
-                      // loopEntityPromise(items, i).then((resp) => {
-                      //   values.push({ target_id: resp.data.id });
-                      // });
-                      resolv(loopItem(items, i, values));
-                    } else resolv(values);
-                  })
-                  .catch((er) => {
-                    console.log(" catch : ", er);
-                    reject(er);
-                  });
-              });
-            } else {
-              store
-                .dispatch("saveEntity", {
-                  entity_type_id: item.target_type,
-                  value: updateDomainId(item.entity),
-                  index: i,
-                })
-                .then((resp) => {
-                  suivers.creates++;
-                  values.push({ target_id: resp.data.id });
-                  i = i + 1;
-                  if (items.length <= i) {
-                    resolv(loopItem(items, i, values));
-                  } else {
-                    resolv(values);
-                  }
-                })
-                .catch((er) => {
-                  console.log("catch : ", er);
-                  reject(er);
-                });
-            }
-          } else resolv(values);
-        });
-      };
-      //
-      /**
-       * Permet de sauvegarder les données d'une matrice.
-       *
-       * @param {Array} datas // tableau des entites enfants.
-       * @param {String} fieldname // fieldname
-       * @param {String} entity // entité parente
-       * @param {Array} keys // tableau des champs à parcourirt (permet de passer à l'etape suivante)
-       * @param {Integer} i   // l'etape encours (permet de passer à l'etape suivante)
-       * @return {Object} entity // l'entité parente MAJ.
-       */
-      const loopFieldEntity = (datas, fieldname, entity, keys, i) => {
-        return new Promise((resolv) => {
-          console.log(" loopFieldEntity : ", datas);
-          // Si le champs contient des données,
-          // on parcourt chacune des entrées.
-          if (datas[fieldname] && datas[fieldname].length > 0) {
-            // Pour chaque champs, on cree les contenus et on recupere les ids.
-            loopItem(datas[fieldname], 0).then((resp) => {
-              console.log("loopFieldEntity result of loopItem : ", resp);
-              entity[fieldname] = resp;
-              // on passe au champs suivant.
-              i = i + 1;
-              if (keys.length > i) {
-                resolv(loopFieldEntity(datas, keys[i], entity, keys, i));
-              } else {
-                resolv(entity);
-              }
-            });
-          } else resolv(entity);
-        });
-      };
-      /**
-       * Permet de cree l'entité parent, apres que tous les entitées enfants soient ok.
-       * il est appelle par tous les enfants possedant des enfants.
-       * loopEntityPromise recois un tableau contenant les entites qui doivent etre cree.
-       * il retourne un tableau de d'entity => [{target_id:...},{target_id:...}, ... ].
-       *
-       * @param {*} datas
-       * @param {*} i
-       * @return resp [{id:..., json:...}] // return un json avec une proprieté json et une autre id.
-       */
-      const loopEntityPromise = (datas, i = null, values = []) => {
-        return new Promise((resolv, reject) => {
-          console.log("loopEntityPromise : ", datas);
-          if (datas[i]) {
-            // S'il contient des sous entités.
-            if (datas[i].entities && typeof datas[i].entities === "object") {
-              const keys = Object.keys(datas[i].entities);
-              loopFieldEntity(datas[i].entities, keys[0], datas[i].entity, keys, 0).then((entity) => {
-                console.log(" loopEntityPromise SEND with override entity : ", entity);
-                store
-                  .dispatch("saveEntity", {
-                    entity_type_id: datas[i].target_type,
-                    value: updateDomainId(entity),
-                    index: i,
-                  })
-                  .then((resp) => {
-                    suivers.creates++;
-                    values.push(resp.data.json);
-                    // datas[i].entity = resp.data.json;
-                    i = i + 1;
-                    if (i < datas.length) {
-                      resolv(loopEntityPromise(datas, i));
-                    } else resolv(values);
-                  })
-                  .catch((er) => {
-                    console.log("catch : ", er);
-                    reject(er);
-                  });
-              });
-            }
-            // S'il ne contient pas de sous entité.
-            else {
-              store
-                .dispatch("saveEntity", {
-                  entity_type_id: datas[i].target_type,
-                  value: updateDomainId(datas[i].entity),
-                  index: i,
-                })
-                .then((resp) => {
-                  suivers.creates++;
-                  values.push(resp.data.json);
-                  i = i + 1;
-                  if (i < datas.length) {
-                    resolv(loopEntityPromise(datas, i));
-                  } else resolv(values);
-                })
-                .catch((er) => {
-                  console.log("catch : ", er);
-                  reject(er);
-                });
-            }
-          } else {
-            console.log(" loopEntityPromise END ");
-            resolv([]);
-          }
-        });
-      };
-      loopEntityPromise(response, 0)
-        .then((entities) => {
-          resolu(entities);
-        })
-        .catch((er) => {
-          rejecte(er);
-        });
-    });
   },
 };
