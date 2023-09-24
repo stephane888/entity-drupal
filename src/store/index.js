@@ -85,8 +85,7 @@ export default new Vuex.Store({
       mail: [{ value: "" }],
     },
     configs_login_rx_vuejs: {
-      client_google_id:
-        "513247959752-qapd9jb30pdtoh51m0h53070a2v8c4er.apps.googleusercontent.com", //from https://console.cloud.google.com/apis/credentials?project=lesroisdelareno
+      client_google_id: "513247959752-qapd9jb30pdtoh51m0h53070a2v8c4er.apps.googleusercontent.com", //from https://console.cloud.google.com/apis/credentials?project=lesroisdelareno
     },
   },
   getters: {
@@ -96,7 +95,7 @@ export default new Vuex.Store({
         for (const i in datas) {
           number++;
           if (datas[i].entities) {
-            console.log("loopCount : ", datas[i].entities);
+            //console.log("loopCount : ", datas[i].entities);
             for (const j in datas[i].entities) {
               loopCount(datas[i].entities[j]);
             }
@@ -165,10 +164,7 @@ export default new Vuex.Store({
     getMatriceEntities({ commit }, payload) {
       return new Promise((resolv, reject) => {
         config
-          .bPost(
-            "/vuejs-entity/entity/generate-page-web/" + payload.id,
-            payload.content
-          )
+          .bPost("/vuejs-entity/entity/generate-page-web/" + payload.id, payload.content)
           .then((resp) => {
             commit("SET_ENTITYDUPLICATE", resp.data);
             resolv(resp);
@@ -185,14 +181,11 @@ export default new Vuex.Store({
           reject("Paramettre manquant");
         } else
           config
-            .bPost(
-              "/apivuejs/save-entity/" + payload.entity_type_id,
-              payload.value
-            )
+            .bPost("/apivuejs/save-entity/" + payload.entity_type_id, payload.value)
             .then((resp) => {
-              console.log("resp : ", resp);
+              //console.log("resp : ", resp);
               //setTimeout(() => {
-              console.log(" payload : ", payload);
+              //console.log(" payload : ", payload);
               resolv(resp);
               //}, 1000);
             })

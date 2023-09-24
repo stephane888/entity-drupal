@@ -640,7 +640,7 @@ export default {
   generateStyleTheme() {
     return new Promise((resolv, reject) => {
       const idHome = window.location.pathname.split("/").pop();
-      this.bGet("/generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
+      this.bGet("/lesroidelareno-generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
         .then(() => {
           this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
             .then(() => {
@@ -812,7 +812,8 @@ export default {
    */
   prepareSaveEntities(response, suivers, ActionDomainId = false) {
     FormUttilities.domainRegister = this.domainRegister;
-    FormUttilities.numberTry = 2;
+    FormUttilities.numberTry = 5;
+    FormUttilities.timeWaitBeforeRetry = 25000;
     return FormUttilities.prepareSaveEntities(store, response, suivers, ActionDomainId);
   },
 };
