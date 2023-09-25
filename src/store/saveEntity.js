@@ -642,7 +642,10 @@ export default {
       const idHome = window.location.pathname.split("/").pop();
       this.bGet("/lesroidelareno-generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
         .then(() => {
-          this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
+          // il ya une nouvelle fonction de filtre d'entite et qui est est vraiment stricte.
+          // du coup pour pouvoir generer les styles, on doit le faire absolument via le domaine.
+          //this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id);
+          this.bGet(window.location.protocol + "://" + this.domainRegister.hostname + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
             .then(() => {
               resolv(this.bGet("/generate-style-theme/update-style-theme/" + this.domainRegister.id));
             })
