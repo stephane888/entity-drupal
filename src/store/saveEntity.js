@@ -645,7 +645,9 @@ export default {
           // il ya une nouvelle fonction de filtre d'entite et qui est est vraiment stricte.
           // du coup pour pouvoir generer les styles, on doit le faire absolument via le domaine.
           //this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id);
-          this.bGet(window.location.protocol + "://" + this.domainRegister.hostname + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
+          const url = window.location.protocol + "//" + this.domainRegister.hostname + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id;
+
+          this.bGet(url)
             .then(() => {
               resolv(this.bGet("/generate-style-theme/update-style-theme/" + this.domainRegister.id));
             })
