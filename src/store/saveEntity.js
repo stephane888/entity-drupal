@@ -18,6 +18,14 @@ export default {
    */
   domainOvhEntity: {},
   OrtherPages: [],
+  /**
+   * time to wait before retry.
+   */
+  timeWaitBeforeRetry: 25000,
+  /**
+   * nombre d'essaie.
+   */
+  numberRetry: 5,
   messages: { errors: [], warnings: [] },
   runStep(steps, state) {
     // On recupere
@@ -242,6 +250,8 @@ export default {
    * Cette etape permet d'appliquer les configurations importante
    */
   CheckApplyActions() {
+    const idHome = window.location.pathname.split("/").pop();
+    this.bPost("/admin/config/manage-add-plugins/" + this.domainRegister.id + "/" + idHome);
     return this.bPost("/vuejs-entity/check-apply-actions", {
       domain: this.domainRegister,
     });
@@ -596,9 +606,18 @@ export default {
     });
   },
 
+  /**
+   *
+   * @param {*} entity
+   * @param {*} entity_type_id
+   * @param {*} region
+   * @param {*} info
+   * @returns
+   */
   addEntityToBlock(entity, entity_type_id, region, info = "") {
     return new Promise((resolv, reject) => {
       if (entity.id && entity.id[0].value) {
+        var essaie = 0;
         const type = entity["type"][0]["target_id"];
         const label = info + " : " + this.domainRegister.id;
         const id_domaine = limit(this.domainRegister.id, 20, "");
@@ -632,24 +651,41 @@ export default {
             view_mode: "default",
           },
         };
-        resolv(this.bPost("/vuejs-entity/entity/add-block-in-region", values));
+        // Permet de relancer en cas d'erreur du serveur.
+        const loop = () => {
+          return new Promise((resolvChild, rejectChild) => {
+            this.bPost("/vuejs-entity/entity/add-block-in-region", values)
+              .then((resp) => {
+                resolvChild(resp);
+              })
+              .catch((err) => {
+                if (essaie <= this.numberRetry) {
+                  essaie++;
+                  setTimeout(() => {
+                    resolvChild(loop());
+                  }, this.timeWaitBeforeRetry);
+                } else rejectChild(err);
+              });
+          });
+        };
+        resolv(loop());
       } else reject(" ID du paragraph non definit ");
     });
   },
 
+  //
   generateStyleTheme() {
     return new Promise((resolv, reject) => {
       const idHome = window.location.pathname.split("/").pop();
-      this.bGet("/lesroidelareno-generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
+      // il ya une nouvelle fonction de filtre d'entite et qui est est vraiment stricte.
+      // du coup pour pouvoir generer les styles, on doit le faire absolument via le domaine.
+      //this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id);
+      const url = window.location.protocol + "//" + this.domainRegister.hostname;
+      this.bGet(url + "/lesroidelareno-generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
         .then(() => {
-          // il ya une nouvelle fonction de filtre d'entite et qui est est vraiment stricte.
-          // du coup pour pouvoir generer les styles, on doit le faire absolument via le domaine.
-          //this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id);
-          const url = window.location.protocol + "//" + this.domainRegister.hostname + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id;
-
-          this.bGet(url)
+          this.bGet(url + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
             .then(() => {
-              resolv(this.bGet("/generate-style-theme/update-style-theme/" + this.domainRegister.id));
+              resolv(this.bGet(url + "/generate-style-theme/update-style-theme/" + this.domainRegister.id));
             })
             .catch(() => {
               reject();
@@ -817,8 +853,8 @@ export default {
    */
   prepareSaveEntities(response, suivers, ActionDomainId = false) {
     FormUttilities.domainRegister = this.domainRegister;
-    FormUttilities.numberTry = 5;
-    FormUttilities.timeWaitBeforeRetry = 25000;
+    FormUttilities.numberTry = this.numberRetry;
+    FormUttilities.timeWaitBeforeRetry = this.timeWaitBeforeRetry;
     return FormUttilities.prepareSaveEntities(store, response, suivers, ActionDomainId);
   },
 };
