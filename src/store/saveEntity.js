@@ -851,7 +851,7 @@ export default {
    * @param {*} ActionDomainId
    * @returns
    */
-  prepareSaveEntities(response, suivers, ActionDomainId = false) {
+  prepareSaveEntities(response, suivers, ActionDomainId = true) {
     FormUttilities.domainRegister = this.domainRegister;
     FormUttilities.numberTry = this.numberRetry;
     FormUttilities.timeWaitBeforeRetry = this.timeWaitBeforeRetry;
