@@ -31311,6 +31311,9 @@ var AccordionCard_component = (0,componentNormalizer/* default */.Z)(
           entity.field_domain_access = [{
             target_id: _this.domainRegister.id
           }];
+          if (entity.field_domain_source) entity.field_domain_source = [{
+            target_id: _this.domainRegister.id
+          }];
         }
 
         return entity;
