@@ -196,7 +196,7 @@ export default new Vuex.Store({
     },
     // Load strings texte
     loadStrings({ commit }) {
-      return config.get("/vuejs-entity/default-string").then((resp) => {
+      return config.bGet("/vuejs-entity/default-string").then((resp) => {
         if (resp.data) {
           commit("SET_STRINGS", resp.data);
         }

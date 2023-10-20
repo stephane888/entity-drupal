@@ -28,13 +28,11 @@ export default {
     // /vuejs-entity/form/block_content/default/header
     loadFields(state) {
       const idHome = window.location.pathname.split("/").pop();
-      config
-        .post("/vuejs-entity/form/paragraphs/" + idHome + "/header")
-        .then((resp) => {
-          if (resp.data) {
-            state.entities = resp.data;
-          }
-        });
+      config.bPost("/vuejs-entity/form/paragraphs/" + idHome + "/header").then((resp) => {
+        if (resp.data) {
+          state.entities = resp.data;
+        }
+      });
     },
     // ...
   },

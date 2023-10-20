@@ -46,7 +46,7 @@ export default {
     return template;
   },
   getImageUrl(fid, style = "medium") {
-    return this.get("/vuejs-entity/image/" + fid + "/" + style);
+    return this.bGet("/vuejs-entity/image/" + fid + "/" + style);
   },
   getRules(field) {
     const rules = {};

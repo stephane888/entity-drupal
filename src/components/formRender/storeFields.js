@@ -38,12 +38,7 @@ export default {
         ],
       },
       {
-        keys: [
-          "color_primary",
-          "color_secondary",
-          "color_linkhover",
-          "background",
-        ],
+        keys: ["color_primary", "color_secondary", "color_linkhover", "background"],
         states: [
           {
             step: {
@@ -129,8 +124,7 @@ export default {
      * @param {*} payload
      */
     ADD_VALID_STEP(state, payload) {
-      if (!state.valid_steppers.includes(payload))
-        state.valid_steppers.push({ value: payload });
+      if (!state.valid_steppers.includes(payload)) state.valid_steppers.push({ value: payload });
     },
     /**
      * @deprecated 'Not use'
@@ -159,10 +153,7 @@ export default {
         homepage: window.location.pathname.split("/").pop(),
       };
       return config
-        .bPost(
-          "/vuejs-entity/form/donnee_internet_entity/default/donnee_internet_entity",
-          param
-        )
+        .bPost("/vuejs-entity/form/donnee_internet_entity/default/donnee_internet_entity", param)
         .then((resp) => {
           if (resp.data) {
             commit("DISABLE_RUNNING");
@@ -171,10 +162,7 @@ export default {
             const hash = urlParams.get("hash");
 
             //on verifie si on a des données en cache.
-            if (
-              localStorage.getItem("app.model") &&
-              hash == localStorage.getItem("app.hash")
-            ) {
+            if (localStorage.getItem("app.model") && hash == localStorage.getItem("app.hash")) {
               const model = JSON.parse(localStorage.getItem("app.model"));
               const form = JSON.parse(localStorage.getItem("app.form"));
               commit("SET_FORM", { form: form, model: model });
@@ -186,9 +174,7 @@ export default {
                * ( Car dans ce cas de figure, il nya pas ou plus de donnée en cache. )
                */
               if (state.current_step) {
-                window.location.replace(
-                  window.location.pathname + window.location.search
-                );
+                window.location.replace(window.location.pathname + window.location.search);
               } else {
                 commit("SET_FORM", resp.data);
                 localStorage.setItem("app.hash", hash);
@@ -229,11 +215,7 @@ export default {
         var stepState = getState(0);
         if (stepState.custom == "check_user_login") {
           save_step = false;
-          if (
-            store.state.user &&
-            store.state.user.uid &&
-            store.state.user.uid[0]
-          ) {
+          if (store.state.user && store.state.user.uid && store.state.user.uid[0]) {
             valid = false;
           }
         } else if (
@@ -297,10 +279,7 @@ export default {
         });
       }
       // Ajout de l'epape
-      if (
-        state.valid_steppers.indexOf(state.current_step) === -1 &&
-        save_step
-      ) {
+      if (state.valid_steppers.indexOf(state.current_step) === -1 && save_step) {
         state.valid_steppers.push(state.current_step);
       }
       return fields;

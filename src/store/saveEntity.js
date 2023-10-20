@@ -251,21 +251,45 @@ export default {
    */
   CheckApplyActions() {
     const idHome = window.location.pathname.split("/").pop();
-    this.bPost("/admin/config/manage-add-plugins/" + this.domainRegister.id + "/" + idHome);
-    return this.bPost("/vuejs-entity/check-apply-actions", {
+    // this.bPost("/admin/config/manage-add-plugins/" + this.domainRegister.id + "/" + idHome);
+    this.LoopGetRequest("/admin/config/manage-add-plugins/" + this.domainRegister.id + "/" + idHome);
+    return this.LoopPostRequest("/vuejs-entity/check-apply-actions", {
       domain: this.domainRegister,
     });
+    // return this.bPost("/vuejs-entity/check-apply-actions", {
+    //   domain: this.domainRegister,
+    // });
   },
   // Dans cette etape, on cree les entités "donnee_internet_entity" et "domain_ovh_entity".
   CreateDomaine(entity) {
-    return this.bPost("/vuejs-entity/entity/save/donnee_internet_entity", entity);
+    return new Promise((resolv, reject) => {
+      this.LoopGetRequest("/admin/lesroidelareno/add-roles")
+        .then(() => {
+          this.LoopPostRequest("/vuejs-entity/entity/save/donnee_internet_entity", entity)
+            .then((resp) => {
+              resolv(resp);
+            })
+            .catch((er) => {
+              reject(er);
+            });
+        })
+        .catch((er) => {
+          reject(er);
+        });
+    });
   },
   // On enregistre le domaine sur OVH et on l'enregistre egalement comme multidomaine sur drupal.
   RegisterDomaine() {
     return new Promise((resolv, reject) => {
       if (this.donneeInternetEntity.domain_ovh_entity && this.donneeInternetEntity.domain_ovh_entity[0] && this.donneeInternetEntity.domain_ovh_entity[0].target_id) {
         // Cree l'entité domain s'il n'existe pas et recupere les entites domain et domain_ovh_entity.
-        resolv(this.bPost("/vuejs-entity/domaine/add/" + this.donneeInternetEntity.domain_ovh_entity[0].target_id));
+        this.LoopGetRequest("/vuejs-entity/domaine/add/" + this.donneeInternetEntity.domain_ovh_entity[0].target_id)
+          .then((resp) => {
+            resolv(resp);
+          })
+          .catch((er) => {
+            reject(er);
+          });
       } else {
         reject(" Le nom de domaine n'a pas pu etre creer ");
       }
@@ -450,15 +474,23 @@ export default {
           });
       });
       // Contruit le menus et les items.
-      this.bPost("/vuejs-entity/entity/add-menu-items", {
+      const menuParam = {
         menu: menu,
         items: items,
         domain: {
           field_domain_access: this.domainRegister.id,
           field_domain_source: this.domainRegister.id,
         },
-        // block_content_type: "header_footer", // La construction doit etre statique car il ya un mappage de champs à faire.
-      })
+      };
+      // this.bPost("/vuejs-entity/entity/add-menu-items", {
+      //   menu: menu,
+      //   items: items,
+      //   domain: {
+      //     field_domain_access: this.domainRegister.id,
+      //     field_domain_source: this.domainRegister.id,
+      //   },
+      // });
+      this.LoopPostRequest("/vuejs-entity/entity/add-menu-items", menuParam)
         .then((resp) => {
           if (resp.data.menu && resp.data.menu.id) {
             // On met à jour le champs "field_reference_menu" au niveau de l'object du header
@@ -507,11 +539,12 @@ export default {
       },
       weight: 0,
     };
-    return this.bPost("/vuejs-entity/entity/add-block-in-region", system_main_block);
+    return this.LoopPostRequest("/vuejs-entity/entity/add-block-in-region", system_main_block);
+    // return this.bPost("/vuejs-entity/entity/add-block-in-region", system_main_block);
   },
   //
-  async CreateTheme() {
-    return new Promise((resolv) => {
+  CreateTheme() {
+    return new Promise((resolv, reject) => {
       var values = {
         site_config: [
           {
@@ -533,9 +566,23 @@ export default {
         values["hostname"] = [{ value: this.domainRegister.id }];
       }
       // Applis colors
-      this.ApplieColor(values).then((resp) => {
-        resolv(this.bPost("/vuejs-entity/entity/save/config_theme_entity", resp));
-      });
+      this.ApplieColor(values)
+        .then((resp) => {
+          // Permet de relancer en cas d'erreur du serveur.
+          /**
+           * Pour le theme, il faut essayer de comprendre ce qui se passe en cas d'echec. il ya plusieurs cas de figure possible.
+           */
+          this.LoopPostRequest("/vuejs-entity/entity/save/config_theme_entity", resp)
+            .then((resp) => {
+              resolv(resp);
+            })
+            .catch((er) => {
+              reject(er);
+            });
+        })
+        .catch((er) => {
+          reject(er);
+        });
     });
   },
   /**
@@ -617,7 +664,6 @@ export default {
   addEntityToBlock(entity, entity_type_id, region, info = "") {
     return new Promise((resolv, reject) => {
       if (entity.id && entity.id[0].value) {
-        var essaie = 0;
         const type = entity["type"][0]["target_id"];
         const label = info + " : " + this.domainRegister.id;
         const id_domaine = limit(this.domainRegister.id, 20, "");
@@ -652,23 +698,29 @@ export default {
           },
         };
         // Permet de relancer en cas d'erreur du serveur.
-        const loop = () => {
-          return new Promise((resolvChild, rejectChild) => {
-            this.bPost("/vuejs-entity/entity/add-block-in-region", values)
-              .then((resp) => {
-                resolvChild(resp);
-              })
-              .catch((err) => {
-                if (essaie <= this.numberRetry) {
-                  essaie++;
-                  setTimeout(() => {
-                    resolvChild(loop());
-                  }, this.timeWaitBeforeRetry);
-                } else rejectChild(err);
-              });
+        // const loop = () => {
+        //   return new Promise((resolvChild, rejectChild) => {
+        //     this.bPost("/vuejs-entity/entity/add-block-in-region", values)
+        //       .then((resp) => {
+        //         resolvChild(resp);
+        //       })
+        //       .catch((err) => {
+        //         if (essaie <= this.numberRetry) {
+        //           essaie++;
+        //           setTimeout(() => {
+        //             resolvChild(loop());
+        //           }, this.timeWaitBeforeRetry);
+        //         } else rejectChild(err);
+        //       });
+        //   });
+        // };
+        this.LoopPostRequest("/vuejs-entity/entity/add-block-in-region", values)
+          .then((resp) => {
+            resolv(resp);
+          })
+          .catch((er) => {
+            reject(er);
           });
-        };
-        resolv(loop());
       } else reject(" ID du paragraph non definit ");
     });
   },
@@ -677,15 +729,21 @@ export default {
   generateStyleTheme() {
     return new Promise((resolv, reject) => {
       const idHome = window.location.pathname.split("/").pop();
-      // il ya une nouvelle fonction de filtre d'entite et qui est est vraiment stricte.
+      // il ya une nouvelle fonction de filtre d'entite et qui est tres stricte.
       // du coup pour pouvoir generer les styles, on doit le faire absolument via le domaine.
-      //this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id);
+      // this.bGet("/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id);
       const url = window.location.protocol + "//" + this.domainRegister.hostname;
-      this.bGet(url + "/lesroidelareno-generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
+      this.LoopGetRequest(url + "/lesroidelareno-generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
         .then(() => {
-          this.bGet(url + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
+          this.LoopGetRequest(url + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
             .then(() => {
-              resolv(this.bGet(url + "/generate-style-theme/update-style-theme/" + this.domainRegister.id));
+              this.LoopGetRequest(url + "/generate-style-theme/update-style-theme/" + this.domainRegister.id)
+                .then(() => {
+                  resolv();
+                })
+                .catch(() => {
+                  reject();
+                });
             })
             .catch(() => {
               reject();
@@ -694,6 +752,21 @@ export default {
         .catch((e) => {
           reject(e);
         });
+
+      //
+      // this.bGet(url + "/lesroidelareno-generate_style_theme/set_default_style/" + idHome + "/" + this.domainRegister.id)
+      //   .then(() => {
+      //     this.bGet(url + "/layoutgenentitystyles/manuel/api-generate/" + this.domainRegister.id)
+      //       .then(() => {
+      //         resolv(this.bGet(url + "/generate-style-theme/update-style-theme/" + this.domainRegister.id));
+      //       })
+      //       .catch(() => {
+      //         reject();
+      //       });
+      //   })
+      //   .catch((e) => {
+      //     reject(e);
+      //   });
     });
   },
 
@@ -856,5 +929,68 @@ export default {
     FormUttilities.numberTry = this.numberRetry;
     FormUttilities.timeWaitBeforeRetry = this.timeWaitBeforeRetry;
     return FormUttilities.prepareSaveEntities(store, response, suivers, ActionDomainId);
+  },
+  /**
+   * Permet de relancer les requetes de types POST.
+   */
+  LoopPostRequest(url, resp) {
+    return new Promise((resolv, reject) => {
+      console.log("LoopPostRequest");
+      var essaie = 0;
+      const loop = () => {
+        return new Promise((resolvChild, rejectChild) => {
+          this.bPost(url, resp)
+            .then((resp) => {
+              resolvChild(resp);
+            })
+            .catch((err) => {
+              if (essaie <= this.numberRetry) {
+                essaie++;
+                setTimeout(() => {
+                  resolvChild(loop());
+                }, this.timeWaitBeforeRetry);
+              } else rejectChild(err);
+            });
+        });
+      };
+      loop()
+        .then((resp) => {
+          resolv(resp);
+        })
+        .catch((er) => {
+          reject(er);
+        });
+    });
+  },
+  /**
+   * Permet de relancer les requetes de types GET.
+   */
+  LoopGetRequest(url) {
+    return new Promise((resolv, reject) => {
+      var essaie = 0;
+      const loop = () => {
+        return new Promise((resolvChild, rejectChild) => {
+          this.bGet(url)
+            .then((resp) => {
+              resolvChild(resp);
+            })
+            .catch((err) => {
+              if (essaie <= this.numberRetry) {
+                essaie++;
+                setTimeout(() => {
+                  resolvChild(loop());
+                }, this.timeWaitBeforeRetry);
+              } else rejectChild(err);
+            });
+        });
+      };
+      loop()
+        .then((resp) => {
+          resolv(resp);
+        })
+        .catch((er) => {
+          reject(er);
+        });
+    });
   },
 };
