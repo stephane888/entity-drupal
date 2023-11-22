@@ -163,8 +163,29 @@ export default new Vuex.Store({
      */
     getMatriceEntities({ commit }, payload) {
       return new Promise((resolv, reject) => {
-        config
-          .bPost("/vuejs-entity/entity/generate-page-web/" + payload.id, payload.content)
+        /**
+         * Permet de relancer les requetes de types POST.
+         */
+        var essaie = 0;
+        var numberRetry = 5;
+        var timeWaitBeforeRetry = 25000;
+        const loop = () => {
+          return new Promise((resolvChild, rejectChild) => {
+            this.bPost("/vuejs-entity/entity/generate-page-web/" + payload.id, payload.content)
+              .then((resp) => {
+                resolvChild(resp);
+              })
+              .catch((err) => {
+                if (essaie <= numberRetry) {
+                  essaie++;
+                  setTimeout(() => {
+                    resolvChild(loop());
+                  }, timeWaitBeforeRetry);
+                } else rejectChild(err);
+              });
+          });
+        };
+        loop()
           .then((resp) => {
             commit("SET_ENTITYDUPLICATE", resp.data);
             resolv(resp);
@@ -172,6 +193,15 @@ export default new Vuex.Store({
           .catch((er) => {
             reject(er);
           });
+        // config
+        //   .bPost("/vuejs-entity/entity/generate-page-web/" + payload.id, payload.content)
+        //   .then((resp) => {
+        //     commit("SET_ENTITYDUPLICATE", resp.data);
+        //     resolv(resp);
+        //   })
+        //   .catch((er) => {
+        //     reject(er);
+        //   });
       });
     },
     saveEntity({ commit }, payload) {
