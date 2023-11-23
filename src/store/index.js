@@ -171,7 +171,8 @@ export default new Vuex.Store({
         var timeWaitBeforeRetry = 25000;
         const loop = () => {
           return new Promise((resolvChild, rejectChild) => {
-            this.bPost("/vuejs-entity/entity/generate-page-web/" + payload.id, payload.content)
+            config
+              .bPost("/vuejs-entity/entity/generate-page-web/" + payload.id, payload.content)
               .then((resp) => {
                 resolvChild(resp);
               })
