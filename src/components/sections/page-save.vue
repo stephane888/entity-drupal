@@ -5,25 +5,17 @@
     <p class="step-donneesite--label">
       <span v-html="strings.page_save_1"></span>
     </p>
+    <b-alert variant="info" show dismissible class="width-phone mx-auto">
+      La creation d'un site prend environ 5 minutes, mais est entierement automatique. <br />
+      <strong>Svp veuillez patienter jusqu'à la.</strong>
+    </b-alert>
     <div v-if="errorMessages.length" class="content-save-text mx-auto mt-5">
-      <b-alert
-        show
-        dismissible
-        variant="danger"
-        v-for="(msg, i) in errorMessages"
-        :key="i"
-      >
+      <b-alert show dismissible variant="danger" v-for="(msg, i) in errorMessages" :key="i">
         <div v-html="msg"></div>
       </b-alert>
     </div>
     <div v-if="warningMessages.length" class="content-save-text mx-auto mt-5">
-      <b-alert
-        show
-        dismissible
-        variant="warning"
-        v-for="(msg, i) in warningMessages"
-        :key="i"
-      >
+      <b-alert show dismissible variant="warning" v-for="(msg, i) in warningMessages" :key="i">
         <div v-html="msg"></div>
       </b-alert>
     </div>
@@ -32,38 +24,17 @@
         <li
           v-for="(item, i) in build_steps"
           :key="i"
-          :class="[
-            item.status == 'ok' ? 'active' : '',
-            item.status == 'error' ? 'text-danger' : '',
-          ]"
+          :class="[item.status == 'ok' ? 'active' : '', item.status == 'error' ? 'text-danger' : '']"
           class="d-flex align-items-baseline"
         >
           <div>
             <div>{{ item.titre }}</div>
-            <small
-              v-for="(incresing, i) in item.entities"
-              :key="i"
-              class="d-block"
-            >
-              {{ incresing.creates }}/{{ incresing.numbers }} Contenu(s) à creer
-              pour la page : {{ incresing.page }}.
+            <small v-for="(incresing, i) in item.entities" :key="i" class="d-block">
+              {{ incresing.creates }}/{{ incresing.numbers }} Contenu(s) à creer pour la page : {{ incresing.page }}.
             </small>
           </div>
-          <b-icon
-            icon="three-dots"
-            font-scale="1.3"
-            animation="cylon"
-            class="ml-auto"
-            variant="primary"
-            v-if="item.status == 'run'"
-          ></b-icon>
-          <b-icon
-            icon="check2"
-            font-scale="1.5"
-            class="ml-auto"
-            variant="primary"
-            v-if="item.status == 'ok'"
-          ></b-icon>
+          <b-icon icon="three-dots" font-scale="1.3" animation="cylon" class="ml-auto" variant="primary" v-if="item.status == 'run'"></b-icon>
+          <b-icon icon="check2" font-scale="1.5" class="ml-auto" variant="primary" v-if="item.status == 'ok'"></b-icon>
         </li>
       </ul>
       <div v-if="finish_status" class="my-5 h3 text-primary d-none">
@@ -79,11 +50,7 @@
         </b-button>
         <b-button @click="open_new_site_admin">
           {{ strings.page_save_admin }}
-          <b-icon
-            icon="folder-symlink"
-            font-scale="1.3"
-            class="float-right"
-          ></b-icon>
+          <b-icon icon="folder-symlink" font-scale="1.3" class="float-right"></b-icon>
         </b-button>
       </div>
       <div v-if="finish_status" class="my-5 h3">
