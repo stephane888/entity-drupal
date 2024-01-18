@@ -6,7 +6,7 @@
       <span v-html="strings.page_save_1"></span>
     </p>
     <b-alert variant="info" show dismissible class="width-phone mx-auto">
-      {{ strings.page_save_alert_info }}
+      <div v-html="strings.page_save_alert_info"></div>
     </b-alert>
     <div v-if="errorMessages.length" class="content-save-text mx-auto mt-5">
       <b-alert show dismissible variant="danger" v-for="(msg, i) in errorMessages" :key="i">
