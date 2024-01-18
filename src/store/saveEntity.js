@@ -456,7 +456,7 @@ export default {
         label: this.domainRegister.id + ": menu principal",
         description: "Menu generé automatiquement",
         third_party_settings: {
-          lesroidelareno: { domain_id: this.domainRegister.id },
+          wb_horizon_public: { domain_id: this.domainRegister.id },
         },
       };
       // build items
