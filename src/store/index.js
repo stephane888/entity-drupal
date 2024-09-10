@@ -95,7 +95,7 @@ export default new Vuex.Store({
         for (const i in datas) {
           number++;
           if (datas[i].entities) {
-            //console.log("loopCount : ", datas[i].entities);
+            // console.log("loopCount : ", datas[i].entities);
             for (const j in datas[i].entities) {
               loopCount(datas[i].entities[j]);
             }
@@ -210,9 +210,12 @@ export default new Vuex.Store({
       return new Promise((resolv, reject) => {
         if (payload.entity_type_id == undefined || !payload.entity_type_id) {
           reject("Paramettre manquant");
-        } else
+        } else {
+          const send_datas = { entity: payload.value, translations: [] };
+          if (payload.translations) send_datas.translations = payload.translations;
+
           config
-            .bPost("/apivuejs/save-entity/" + payload.entity_type_id, payload.value)
+            .bPost("/apivuejs/save-entity/" + payload.entity_type_id, send_datas)
             .then((resp) => {
               //console.log("resp : ", resp);
               //setTimeout(() => {
@@ -223,6 +226,7 @@ export default new Vuex.Store({
             .catch((er) => {
               reject(er);
             });
+        }
       });
     },
     // Load strings texte
