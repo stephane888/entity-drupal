@@ -31638,13 +31638,24 @@ var AccordionCard_component = (0,componentNormalizer/* default */.Z)(
                     entity_type_id: items[i].target_type,
                     value: updateDomainId(entity),
                     index: i,
-                    translations: []
+                    translations: {}
                   };
-                  console.log(" etapes non ok pour les traductions : ", entity, "\n", items[i]); // if (item.entity.translations && item.entity.translations.length) {
-                  //   datas[i].entity.translations.forEach((translate_entity) => {
-                  //     payloads.translations.push(updateDomainId(translate_entity));
-                  //   });
-                  // }
+
+                  if (items[i].translations) {
+                    var _loop = function _loop(k) {
+                      var translate_entity = items[i].translations[k];
+                      keys.forEach(function (key_fieldName) {
+                        if (translate_entity[key_fieldName]) {
+                          translate_entity[key_fieldName] = entity[key_fieldName];
+                        }
+                      });
+                      payloads.translations[k] = updateDomainId(translate_entity);
+                    };
+
+                    for (var k in items[i].translations) {
+                      _loop(k);
+                    }
+                  }
 
                   store.dispatch("saveEntity", payloads).then(function (resp) {
                     suivers.creates++; // console.log(" Before loopItemAddValues 1 : ", values);
@@ -31683,13 +31694,14 @@ var AccordionCard_component = (0,componentNormalizer/* default */.Z)(
                   entity_type_id: item.target_type,
                   value: updateDomainId(item.entity),
                   index: i,
-                  translations: []
+                  translations: {}
                 };
 
-                if (item.entity.translations && item.entity.translations.length) {
-                  datas[i].entity.translations.forEach(function (translate_entity) {
-                    payloads.translations.push(updateDomainId(translate_entity));
-                  });
+                if (item.translations) {
+                  for (var k in item.translations) {
+                    var translate_entity = item.translations[k];
+                    payloads.translations[k] = updateDomainId(translate_entity);
+                  }
                 }
 
                 store.dispatch("saveEntity", payloads).then(function (resp) {
@@ -31810,15 +31822,25 @@ var AccordionCard_component = (0,componentNormalizer/* default */.Z)(
                 var saveEntity = function saveEntity() {
                   var payloads = {
                     entity_type_id: datas[i].target_type,
-                    value: updateDomainId(datas[i].entity),
+                    value: updateDomainId(entity),
                     index: i,
-                    translations: []
+                    translations: {}
                   };
 
-                  if (datas[i].entity.translations && datas[i].entity.translations.length) {
-                    datas[i].entity.translations.forEach(function (translate_entity) {
-                      payloads.translations.push(updateDomainId(translate_entity));
-                    });
+                  if (datas[i].translations) {
+                    var _loop2 = function _loop2(k) {
+                      var translate_entity = datas[i].translations[k];
+                      keys.forEach(function (key_fieldName) {
+                        if (translate_entity[key_fieldName]) {
+                          translate_entity[key_fieldName] = entity[key_fieldName];
+                        }
+                      });
+                      payloads.translations[k] = updateDomainId(translate_entity);
+                    };
+
+                    for (var k in datas[i].translations) {
+                      _loop2(k);
+                    }
                   }
 
                   store.dispatch("saveEntity", payloads).then(function (resp) {
@@ -31864,13 +31886,14 @@ var AccordionCard_component = (0,componentNormalizer/* default */.Z)(
                   entity_type_id: datas[i].target_type,
                   value: updateDomainId(datas[i].entity),
                   index: i,
-                  translations: []
+                  translations: {}
                 };
 
-                if (datas[i].entity.translations && datas[i].entity.translations.length) {
-                  datas[i].entity.translations.forEach(function (translate_entity) {
-                    payloads.translations.push(updateDomainId(translate_entity));
-                  });
+                if (datas[i].translations) {
+                  for (var k in datas[i].translations) {
+                    var translate_entity = datas[i].translations[k];
+                    payloads.translations[k] = updateDomainId(translate_entity);
+                  }
                 } //
 
 
@@ -92374,6 +92397,8 @@ var FormUttilities = __webpack_require__(61161);
                   _this5.prepareSaveEntities(resp.data, vals).then(function (entities) {
                     entities.forEach(function (entity) {
                       _this5.OrtherPages.push(entity);
+
+                      console.log(" OrtherPages : ", _this5.OrtherPages);
                     });
                     var id = i + 1;
                     resolv(loop(id));
@@ -92398,25 +92423,7 @@ var FormUttilities = __webpack_require__(61161);
 
                   step.entities.push(vals);
                 });
-              }); //   .then((resp) => {
-              //     this.OrtherPages.push(resp.data);
-              //     var id = i + 1;
-              //     resolv(loop(id));
-              //   })
-              //   .catch(() => {
-              //     this.messages.warnings.push(
-              //       " Erreur rencontrée lors de la creation de cette page : <b>" +
-              //         title +
-              //         "</b> vous pourriez la re-creer plus tard. "
-              //     );
-              //     setTimeout(() => {
-              //       if (essaie == 1) loop(i, 2);
-              //       else {
-              //         var id2 = i + 1;
-              //         loop(id2);
-              //       }
-              //     }, 1000);
-              //   });
+              });
             } else {
               resolv();
             }
@@ -92456,49 +92463,91 @@ var FormUttilities = __webpack_require__(61161);
 
       var items = [];
 
-      _this6.OrtherPages.forEach(function (page) {
-        if (page.id[0] && page.id[0].value) items.push({
-          title: [{
-            value: page.name[0] ? page.name[0].value : "lien genere :" + page.id[0].value
-          }],
-          enabled: [{
-            value: true
-          }],
-          link: [{
-            uri: "internal:/site-internet-entity/" + page.id[0].value
-          }]
+      var loopBuildItemsMenu = function loopBuildItemsMenu(i, items) {
+        return new Promise(function (resolv2, reject2) {
+          var page = _this6.OrtherPages[i];
+
+          if (page.id[0] && page.id[0].value) {
+            var translations = {};
+
+            _this6.LoopPostRequest("/apivuejs/canonical-entity/site_internet_entity/" + page.id[0].value, {}).then(function (datas) {
+              if (datas.data && datas.data.translations) {
+                for (var _i in datas.data.translations) {
+                  var entity_translate = datas.data.translations[_i];
+                  translations[_i] = {
+                    title: [{
+                      value: entity_translate.name[0] ? entity_translate.name[0].value : "lien genere :" + entity_translate.id[0].value
+                    }],
+                    enabled: [{
+                      value: true
+                    }],
+                    link: [{
+                      uri: "internal:/site-internet-entity/" + entity_translate.id[0].value
+                    }]
+                  };
+                }
+
+                var item = {
+                  entity: {
+                    title: [{
+                      value: page.name[0] ? page.name[0].value : "lien genere :" + page.id[0].value
+                    }],
+                    enabled: [{
+                      value: true
+                    }],
+                    link: [{
+                      uri: "internal:/site-internet-entity/" + page.id[0].value
+                    }]
+                  },
+                  translations: translations
+                };
+                items.push(item);
+                i = i + 1;
+
+                if (_this6.OrtherPages[i]) {
+                  resolv2(loopBuildItemsMenu(i, items));
+                } else {
+                  resolv2(items);
+                }
+              }
+            }).catch(function (er) {
+              _this6.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
+
+              reject2(er);
+            });
+          }
         });
-      }); // Contruit le menus et les items.
+      };
 
+      loopBuildItemsMenu(0, items).then(function (results) {
+        console.log(" Results items ::: ", results); // Contruit le menus et les items.
 
-      var menuParam = {
-        menu: menu,
-        items: items,
-        domain: {
-          field_domain_access: _this6.domainRegister.id,
-          field_domain_source: _this6.domainRegister.id
-        }
-      }; // this.bPost("/vuejs-entity/entity/add-menu-items", {
-      //   menu: menu,
-      //   items: items,
-      //   domain: {
-      //     field_domain_access: this.domainRegister.id,
-      //     field_domain_source: this.domainRegister.id,
-      //   },
-      // });
+        var menuParam = {
+          menu: menu,
+          items: results,
+          domain: {
+            field_domain_access: _this6.domainRegister.id,
+            field_domain_source: _this6.domainRegister.id
+          }
+        };
 
-      _this6.LoopPostRequest("/vuejs-entity/entity/add-menu-items", menuParam).then(function (resp) {
-        if (resp.data.menu && resp.data.menu.id) {
-          // On met à jour le champs "field_reference_menu" au niveau de l'object du header
-          state.storeFormRenderHeader.entities[0].entity.field_reference_menu = [{
-            target_id: resp.data.menu.id
-          }];
-          resolv();
-        } else {
-          _this6.messages.warnings.push(" Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. ");
+        _this6.LoopPostRequest("/vuejs-entity/entity/add-menu-items", menuParam).then(function (resp) {
+          if (resp.data.menu && resp.data.menu.id) {
+            // On met à jour le champs "field_reference_menu" au niveau de l'object du header
+            state.storeFormRenderHeader.entities[0].entity.field_reference_menu = [{
+              target_id: resp.data.menu.id
+            }];
+            resolv();
+          } else {
+            _this6.messages.warnings.push(" Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. ");
+
+            reject();
+          }
+        }).catch(function () {
+          _this6.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
 
           reject();
-        }
+        });
       }).catch(function () {
         _this6.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
 
@@ -94977,13 +95026,15 @@ var page_save_component = (0,componentNormalizer/* default */.Z)(
       // {
       //   keys: ["description"],
       // },
+      // {
+      //   keys: [],
+      //   templates: ["layout_entete"],
+      // },
+      // {
+      //   keys: [],
+      //   templates: ["layout_footer"],
+      // },
       {
-        keys: [],
-        templates: ["layout_entete"]
-      }, {
-        keys: [],
-        templates: ["layout_footer"]
-      }, {
         keys: [],
         templates: ["page_register"],
         states: [{

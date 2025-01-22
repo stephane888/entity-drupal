@@ -411,25 +411,6 @@ export default {
                   step.entities.push(vals);
                 });
               });
-              //   .then((resp) => {
-              //     this.OrtherPages.push(resp.data);
-              //     var id = i + 1;
-              //     resolv(loop(id));
-              //   })
-              //   .catch(() => {
-              //     this.messages.warnings.push(
-              //       " Erreur rencontrée lors de la creation de cette page : <b>" +
-              //         title +
-              //         "</b> vous pourriez la re-creer plus tard. "
-              //     );
-              //     setTimeout(() => {
-              //       if (essaie == 1) loop(i, 2);
-              //       else {
-              //         var id2 = i + 1;
-              //         loop(id2);
-              //       }
-              //     }, 1000);
-              //   });
             } else {
               resolv();
             }
@@ -461,45 +442,80 @@ export default {
       };
       // build items
       const items = [];
-      this.OrtherPages.forEach((page) => {
-        if (page.id[0] && page.id[0].value)
-          items.push({
-            title: [
-              {
-                value: page.name[0] ? page.name[0].value : "lien genere :" + page.id[0].value,
-              },
-            ],
-            enabled: [{ value: true }],
-            link: [{ uri: "internal:/site-internet-entity/" + page.id[0].value }],
-          });
-      });
-      // Contruit le menus et les items.
-      const menuParam = {
-        menu: menu,
-        items: items,
-        domain: {
-          field_domain_access: this.domainRegister.id,
-          field_domain_source: this.domainRegister.id,
-        },
-      };
-      // this.bPost("/vuejs-entity/entity/add-menu-items", {
-      //   menu: menu,
-      //   items: items,
-      //   domain: {
-      //     field_domain_access: this.domainRegister.id,
-      //     field_domain_source: this.domainRegister.id,
-      //   },
-      // });
-      this.LoopPostRequest("/vuejs-entity/entity/add-menu-items", menuParam)
-        .then((resp) => {
-          if (resp.data.menu && resp.data.menu.id) {
-            // On met à jour le champs "field_reference_menu" au niveau de l'object du header
-            state.storeFormRenderHeader.entities[0].entity.field_reference_menu = [{ target_id: resp.data.menu.id }];
-            resolv();
-          } else {
-            this.messages.warnings.push(" Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. ");
-            reject();
+      const loopBuildItemsMenu = (i, items) => {
+        return new Promise((resolv2, reject2) => {
+          const page = this.OrtherPages[i];
+          if (page.id[0] && page.id[0].value) {
+            const translations = {};
+            this.LoopPostRequest("/apivuejs/canonical-entity/site_internet_entity/" + page.id[0].value, {})
+              .then((datas) => {
+                if (datas.data && datas.data.translations) {
+                  for (const i in datas.data.translations) {
+                    const entity_translate = datas.data.translations[i];
+                    translations[i] = {
+                      title: [
+                        {
+                          value: entity_translate.name[0] ? entity_translate.name[0].value : "lien genere :" + entity_translate.id[0].value,
+                        },
+                      ],
+                      enabled: [{ value: true }],
+                      link: [{ uri: "internal:/site-internet-entity/" + entity_translate.id[0].value }],
+                    };
+                  }
+                  const item = {
+                    entity: {
+                      title: [
+                        {
+                          value: page.name[0] ? page.name[0].value : "lien genere :" + page.id[0].value,
+                        },
+                      ],
+                      enabled: [{ value: true }],
+                      link: [{ uri: "internal:/site-internet-entity/" + page.id[0].value }],
+                    },
+                    translations: translations,
+                  };
+                  items.push(item);
+                  i = i + 1;
+                  if (this.OrtherPages[i]) {
+                    resolv2(loopBuildItemsMenu(i, items));
+                  } else {
+                    resolv2(items);
+                  }
+                }
+              })
+              .catch((er) => {
+                this.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
+                reject2(er);
+              });
           }
+        });
+      };
+      loopBuildItemsMenu(0, items)
+        .then((results) => {
+          // Contruit le menus et les items.
+          const menuParam = {
+            menu: menu,
+            items: results,
+            domain: {
+              field_domain_access: this.domainRegister.id,
+              field_domain_source: this.domainRegister.id,
+            },
+          };
+          this.LoopPostRequest("/vuejs-entity/entity/add-menu-items", menuParam)
+            .then((resp) => {
+              if (resp.data.menu && resp.data.menu.id) {
+                // On met à jour le champs "field_reference_menu" au niveau de l'object du header
+                state.storeFormRenderHeader.entities[0].entity.field_reference_menu = [{ target_id: resp.data.menu.id }];
+                resolv();
+              } else {
+                this.messages.warnings.push(" Une erreur est survenu lors de la disposition des menus, vous pourriez le faire plus tard. ");
+                reject();
+              }
+            })
+            .catch(() => {
+              this.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
+              reject();
+            });
         })
         .catch(() => {
           this.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
@@ -935,7 +951,6 @@ export default {
    */
   LoopPostRequest(url, resp) {
     return new Promise((resolv, reject) => {
-      console.log("LoopPostRequest");
       var essaie = 0;
       const loop = () => {
         return new Promise((resolvChild, rejectChild) => {

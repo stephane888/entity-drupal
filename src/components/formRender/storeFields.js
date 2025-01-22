@@ -56,14 +56,14 @@ export default {
       // {
       //   keys: ["description"],
       // },
-      {
-        keys: [],
-        templates: ["layout_entete"],
-      },
-      {
-        keys: [],
-        templates: ["layout_footer"],
-      },
+      // {
+      //   keys: [],
+      //   templates: ["layout_entete"],
+      // },
+      // {
+      //   keys: [],
+      //   templates: ["layout_footer"],
+      // },
       {
         keys: [],
         templates: ["page_register"],
