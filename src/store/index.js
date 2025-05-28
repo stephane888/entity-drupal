@@ -36,7 +36,7 @@ export default new Vuex.Store({
         entities: [],
       },
       {
-        titre: "Creation de vos contenus",
+        titre: "Creation des pages et contenus",
         step: "create_content",
         status: false,
         entities: [],

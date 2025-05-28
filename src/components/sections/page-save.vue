@@ -26,11 +26,17 @@
           :class="[item.status == 'ok' ? 'active' : '', item.status == 'error' ? 'text-danger' : '']"
           class="d-flex align-items-baseline"
         >
-          <div>
-            <div>{{ item.titre }}</div>
-            <small v-for="(incresing, i) in item.entities" :key="i" class="d-block">
-              {{ incresing.creates }}/{{ incresing.numbers }} Contenu(s) à creer pour la page : {{ incresing.page }}.
-            </small>
+          <div class="text-align-left">
+            <div>
+              {{ item.titre }} <small v-if="item.entities && item.entities.length > 2" class="fw-light"> ({{ item.entities.length }} pages) </small>
+            </div>
+            <ul v-if="item.entities" class="puce-check line-height-1 my-3">
+              <li v-for="(incresing, i) in item.entities" :key="i" class="d-block fw-normal fs-6 mb-4">
+                <small>
+                  Page <strong>{{ incresing.page }} </strong>, références créées : <em> {{ incresing.creates }}/{{ incresing.numbers }}</em>
+                </small>
+              </li>
+            </ul>
           </div>
           <b-icon icon="three-dots" font-scale="1.3" animation="cylon" class="ml-auto" variant="primary" v-if="item.status == 'run'"></b-icon>
           <b-icon icon="check2" font-scale="1.5" class="ml-auto" variant="primary" v-if="item.status == 'ok'"></b-icon>

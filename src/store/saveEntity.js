@@ -58,8 +58,9 @@ export default {
           step.status = "run";
           this.RegisterDomaine()
             .then((resp) => {
-              // On lance la creation sur OVH, apres cette etape.(car les deux etapes modifie la meme entité)
-              this.bPost("/ovh-api-rest/create-domaine/" + this.donneeInternetEntity.domain_ovh_entity[0].target_id).catch(() => {
+              //  On lance la creation sur OVH, apres cette etape.(car les deux etapes modifie la meme entité)
+              this.bPost("/ovh-api-rest/create-domaine/" + this.donneeInternetEntity.domain_ovh_entity[0].target_id).catch((er) => {
+                this.runErrorsMessages(er);
                 this.messages.warnings.push(" Votre domaine n'a pas pu etre generer ");
               });
               setTimeout(() => {
@@ -100,7 +101,8 @@ export default {
                 .then(() => {
                   passNext();
                 })
-                .catch(() => {
+                .catch((er) => {
+                  this.runErrorsMessages(er);
                   // la creation des pages n'est pas un processus blocant, donc on continue meme en cas d'echac.
                   passNext();
                 });
@@ -149,11 +151,13 @@ export default {
                         //passNext();
                       });
                   })
-                  .catch(() => {
+                  .catch((er) => {
+                    this.runErrorsMessages(er);
                     step.status = "error";
                   });
               })
-              .catch(() => {
+              .catch((er) => {
+                this.runErrorsMessages(er);
                 step.status = "error";
               });
           } else {
@@ -208,7 +212,8 @@ export default {
               .then(() => {
                 passNext();
               })
-              .catch(() => {
+              .catch((er) => {
+                this.runErrorsMessages(er);
                 passNext();
               });
           } else {
@@ -225,7 +230,8 @@ export default {
               this.currentBuildStep++;
               this.runStep(steps, state);
             })
-            .catch(() => {
+            .catch((er) => {
+              this.runErrorsMessages(er);
               step.status = "error";
               this.currentBuildStep++;
               this.runStep(steps, state);
@@ -270,10 +276,12 @@ export default {
               resolv(resp);
             })
             .catch((er) => {
+              this.runErrorsMessages(er);
               reject(er);
             });
         })
         .catch((er) => {
+          this.runErrorsMessages(er);
           reject(er);
         });
     });
@@ -288,6 +296,7 @@ export default {
             resolv(resp);
           })
           .catch((er) => {
+            this.runErrorsMessages(er);
             reject(er);
           });
       } else {
@@ -341,6 +350,7 @@ export default {
           });
         })
         .catch((er) => {
+          this.runErrorsMessages(er);
           reject(er);
         });
     });
@@ -375,6 +385,7 @@ export default {
                 content: values,
               };
               store.dispatch("getMatriceEntities", payload).then((resp) => {
+                console.log("getMatriceEntities : ", resp);
                 this.getNumberEntities(resp.data).then((numbers) => {
                   var vals = {
                     numbers: numbers,
@@ -396,7 +407,8 @@ export default {
                      * En cas d'erreur.
                      * On fait 2 tentatives, si elle n'aboutie pas on passe à la suite.
                      */
-                    .catch(() => {
+                    .catch((er) => {
+                      this.runErrorsMessages(er);
                       this.messages.warnings.push(" Erreur rencontrée lors de la creation de cette page : <b>" + title + "</b> vous pourriez la re-creer plus tard. ");
                       setTimeout(() => {
                         if (essaie <= 2) {
@@ -484,6 +496,7 @@ export default {
                 }
               })
               .catch((er) => {
+                this.runErrorsMessages(er);
                 this.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
                 reject2(er);
               });
@@ -512,12 +525,14 @@ export default {
                 reject();
               }
             })
-            .catch(() => {
+            .catch((er) => {
+              this.runErrorsMessages(er);
               this.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
               reject();
             });
         })
-        .catch(() => {
+        .catch((er) => {
+          this.runErrorsMessages(er);
           this.messages.warnings.push(" Une erreur est survenu lors de la creation des menus, vous pourriez le faire plus tard. ");
           reject();
         });
@@ -593,10 +608,12 @@ export default {
               resolv(resp);
             })
             .catch((er) => {
+              this.runErrorsMessages(er);
               reject(er);
             });
         })
         .catch((er) => {
+          this.runErrorsMessages(er);
           reject(er);
         });
     });
@@ -735,6 +752,7 @@ export default {
             resolv(resp);
           })
           .catch((er) => {
+            this.runErrorsMessages(er);
             reject(er);
           });
       } else reject(" ID du paragraph non definit ");
@@ -757,16 +775,19 @@ export default {
                 .then(() => {
                   resolv();
                 })
-                .catch(() => {
+                .catch((er) => {
+                  this.runErrorsMessages(er);
                   reject();
                 });
             })
-            .catch(() => {
+            .catch((er) => {
+              this.runErrorsMessages(er);
               reject();
             });
         })
-        .catch((e) => {
-          reject(e);
+        .catch((er) => {
+          this.runErrorsMessages(er);
+          reject(er);
         });
 
       //
@@ -959,6 +980,7 @@ export default {
               resolvChild(resp);
             })
             .catch((err) => {
+              this.runErrorsMessages(err);
               if (essaie <= this.numberRetry) {
                 essaie++;
                 setTimeout(() => {
@@ -973,6 +995,7 @@ export default {
           resolv(resp);
         })
         .catch((er) => {
+          this.runErrorsMessages(er);
           reject(er);
         });
     });
@@ -990,6 +1013,7 @@ export default {
               resolvChild(resp);
             })
             .catch((err) => {
+              this.runErrorsMessages(err);
               if (essaie <= this.numberRetry) {
                 essaie++;
                 setTimeout(() => {
@@ -1004,6 +1028,7 @@ export default {
           resolv(resp);
         })
         .catch((er) => {
+          this.runErrorsMessages(er);
           reject(er);
         });
     });
